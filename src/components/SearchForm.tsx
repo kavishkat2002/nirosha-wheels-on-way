@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { CalendarIcon, MapPin, ArrowRight, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -43,23 +44,39 @@ export function SearchForm({ onSearch }: SearchFormProps) {
 
   if (loading) {
     return (
-      <div className="bg-card rounded-xl shadow-xl p-6 md:p-8 flex items-center justify-center">
+      <motion.div 
+        className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-2xl p-6 md:p-8 flex items-center justify-center border border-border/50"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="bg-card rounded-xl shadow-xl p-6 md:p-8">
+    <motion.div 
+      className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-2xl p-6 md:p-8 border border-border/50"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         {/* Source */}
-        <div className="space-y-2">
+        <motion.div 
+          className="space-y-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+        >
           <label className="text-sm font-medium text-card-foreground flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-primary" />
+            <div className="p-1.5 bg-primary/10 rounded-lg">
+              <MapPin className="h-4 w-4 text-primary" />
+            </div>
             From
           </label>
           <Select value={source} onValueChange={setSource}>
-            <SelectTrigger className="h-12 bg-background">
+            <SelectTrigger className="h-12 bg-background/50 border-border/50 focus:border-primary transition-colors">
               <SelectValue placeholder="Select departure city" />
             </SelectTrigger>
             <SelectContent>
@@ -70,16 +87,23 @@ export function SearchForm({ onSearch }: SearchFormProps) {
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </motion.div>
 
         {/* Destination */}
-        <div className="space-y-2">
+        <motion.div 
+          className="space-y-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           <label className="text-sm font-medium text-card-foreground flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-secondary" />
+            <div className="p-1.5 bg-secondary/20 rounded-lg">
+              <MapPin className="h-4 w-4 text-secondary-foreground" />
+            </div>
             To
           </label>
           <Select value={destination} onValueChange={setDestination}>
-            <SelectTrigger className="h-12 bg-background">
+            <SelectTrigger className="h-12 bg-background/50 border-border/50 focus:border-primary transition-colors">
               <SelectValue placeholder="Select arrival city" />
             </SelectTrigger>
             <SelectContent>
@@ -90,12 +114,19 @@ export function SearchForm({ onSearch }: SearchFormProps) {
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </motion.div>
 
         {/* Date */}
-        <div className="space-y-2">
+        <motion.div 
+          className="space-y-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+        >
           <label className="text-sm font-medium text-card-foreground flex items-center gap-2">
-            <CalendarIcon className="h-4 w-4 text-primary" />
+            <div className="p-1.5 bg-primary/10 rounded-lg">
+              <CalendarIcon className="h-4 w-4 text-primary" />
+            </div>
             Date
           </label>
           <Popover>
@@ -103,7 +134,7 @@ export function SearchForm({ onSearch }: SearchFormProps) {
               <Button
                 variant="outline"
                 className={cn(
-                  "h-12 w-full justify-start text-left font-normal bg-background",
+                  "h-12 w-full justify-start text-left font-normal bg-background/50 border-border/50 hover:border-primary transition-colors",
                   !date && "text-muted-foreground"
                 )}
               >
@@ -122,26 +153,45 @@ export function SearchForm({ onSearch }: SearchFormProps) {
               />
             </PopoverContent>
           </Popover>
-        </div>
+        </motion.div>
 
         {/* Search Button */}
-        <Button 
-          onClick={handleSearch} 
-          className="h-12 text-base font-semibold"
-          disabled={!source || !destination || !date}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <Search className="h-5 w-5 mr-2" />
-          Search Buses
-        </Button>
+          <Button 
+            onClick={handleSearch} 
+            className="h-12 w-full text-base font-semibold shadow-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300"
+            disabled={!source || !destination || !date}
+          >
+            <Search className="h-5 w-5 mr-2" />
+            Search Buses
+          </Button>
+        </motion.div>
       </div>
 
       {source && destination && (
-        <div className="mt-4 flex items-center justify-center text-muted-foreground">
-          <span className="font-medium">{source}</span>
-          <ArrowRight className="h-4 w-4 mx-2" />
-          <span className="font-medium">{destination}</span>
-        </div>
+        <motion.div 
+          className="mt-6 flex items-center justify-center"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="flex items-center gap-3 px-6 py-3 bg-muted/50 rounded-full">
+            <span className="font-semibold text-foreground">{source}</span>
+            <motion.div
+              animate={{ x: [0, 5, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <ArrowRight className="h-5 w-5 text-primary" />
+            </motion.div>
+            <span className="font-semibold text-foreground">{destination}</span>
+          </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
