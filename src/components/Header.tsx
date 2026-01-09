@@ -9,12 +9,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 
 export function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
-  const isAdmin = location.pathname.startsWith('/admin');
+  const { isAdmin } = useAdminCheck();
 
   const handleSignOut = async () => {
     await signOut();
@@ -61,10 +62,12 @@ export function Header() {
                     <Ticket className="h-4 w-4 mr-2" />
                     My Bookings
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/admin")}>
-                    <Shield className="h-4 w-4 mr-2" />
-                    Admin Panel
-                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate("/admin")}>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin Panel
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="h-4 w-4 mr-2" />
