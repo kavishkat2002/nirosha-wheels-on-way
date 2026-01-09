@@ -5,8 +5,8 @@ import { BusCard } from "@/components/BusCard";
 import { SeatSelector } from "@/components/SeatSelector";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { TicketDisplay } from "@/components/TicketDisplay";
-import { Schedule, Booking, searchSchedules } from "@/lib/data";
-import { Bus, MapPin, Shield, Clock } from "lucide-react";
+import { Schedule, Booking, fetchSchedules } from "@/lib/api";
+import { Bus, MapPin, Shield, Clock, Loader2 } from "lucide-react";
 
 type BookingStep = 'search' | 'select-seat' | 'ticket';
 
@@ -18,12 +18,20 @@ const Index = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [confirmedBookings, setConfirmedBookings] = useState<Booking[]>([]);
   const [searchParams, setSearchParams] = useState({ source: '', destination: '', date: '' });
+  const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearch = (source: string, destination: string, date: string) => {
+  const handleSearch = async (source: string, destination: string, date: string) => {
     setSearchParams({ source, destination, date });
-    const results = searchSchedules(source, destination, date);
-    setSearchResults(results);
-    setSelectedSchedule(null);
+    setIsSearching(true);
+    try {
+      const results = await fetchSchedules(source, destination, date);
+      setSearchResults(results);
+      setSelectedSchedule(null);
+    } catch (error) {
+      console.error("Search failed:", error);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleSelectBus = (schedule: Schedule) => {
@@ -56,9 +64,13 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      {step === 'ticket' ? (
+      {step === 'ticket' && selectedSchedule ? (
         <main className="container mx-auto px-4 py-12">
-          <TicketDisplay bookings={confirmedBookings} onBookAnother={handleBookAnother} />
+          <TicketDisplay 
+            bookings={confirmedBookings} 
+            schedule={selectedSchedule}
+            onBookAnother={handleBookAnother} 
+          />
         </main>
       ) : (
         <>
@@ -80,7 +92,7 @@ const Index = () => {
           </section>
 
           {/* Features */}
-          {step === 'search' && searchResults.length === 0 && (
+          {step === 'search' && searchResults.length === 0 && !searchParams.source && (
             <section className="py-16 bg-muted/30">
               <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -110,8 +122,18 @@ const Index = () => {
             </section>
           )}
 
+          {/* Loading State */}
+          {step === 'search' && isSearching && (
+            <section className="py-16">
+              <div className="container mx-auto px-4 text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+                <p className="text-muted-foreground mt-4">Searching for buses...</p>
+              </div>
+            </section>
+          )}
+
           {/* Search Results */}
-          {step === 'search' && searchResults.length > 0 && (
+          {step === 'search' && !isSearching && searchResults.length > 0 && (
             <section className="py-12">
               <div className="container mx-auto px-4">
                 <div className="flex items-center gap-2 mb-6">
@@ -137,7 +159,7 @@ const Index = () => {
           )}
 
           {/* No Results */}
-          {step === 'search' && searchParams.source && searchResults.length === 0 && (
+          {step === 'search' && !isSearching && searchParams.source && searchResults.length === 0 && (
             <section className="py-16">
               <div className="container mx-auto px-4 text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-muted rounded-full mb-4">
