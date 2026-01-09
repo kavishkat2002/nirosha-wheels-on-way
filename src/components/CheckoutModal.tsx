@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,12 +19,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Schedule, getBusById, getRouteById, addMultipleBookings, Booking } from "@/lib/data";
-import { MapPin, Calendar, Armchair, CreditCard } from "lucide-react";
+import { Schedule, Booking, createMultipleBookings } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
+import { MapPin, Calendar, Armchair, CreditCard, LogIn } from "lucide-react";
+import { toast } from "sonner";
 
 const formSchema = z.object({
-  passengerName: z.string().min(2, "Name must be at least 2 characters"),
-  passengerEmail: z.string().email("Please enter a valid email"),
+  passengerName: z.string().min(2, "Name must be at least 2 characters").max(100),
+  passengerEmail: z.string().email("Please enter a valid email").max(255),
 });
 
 interface CheckoutModalProps {
@@ -36,14 +39,17 @@ interface CheckoutModalProps {
 
 export function CheckoutModal({ schedule, selectedSeats, open, onClose, onSuccess }: CheckoutModalProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const bus = getBusById(schedule.busId);
-  const route = getRouteById(schedule.routeId);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  const bus = schedule.bus;
+  const route = schedule.route;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       passengerName: "",
-      passengerEmail: "",
+      passengerEmail: user?.email || "",
     },
   });
 
@@ -52,19 +58,32 @@ export function CheckoutModal({ schedule, selectedSeats, open, onClose, onSucces
   const totalPrice = selectedSeats.length * schedule.price;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user) {
+      toast.error("Please login to complete your booking");
+      return;
+    }
+
     setIsLoading(true);
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const bookings = addMultipleBookings(
-      schedule.id,
-      selectedSeats,
-      values.passengerName,
-      values.passengerEmail
-    );
-    
-    setIsLoading(false);
-    onSuccess(bookings);
+    try {
+      const bookings = await createMultipleBookings(
+        user.id,
+        schedule.id,
+        selectedSeats,
+        values.passengerName,
+        values.passengerEmail
+      );
+      toast.success("Booking confirmed!");
+      onSuccess(bookings);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to complete booking");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLoginClick = () => {
+    onClose();
+    navigate("/auth");
   };
 
   return (
@@ -85,7 +104,7 @@ export function CheckoutModal({ schedule, selectedSeats, open, onClose, onSucces
           
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="h-4 w-4" />
-            <span>{schedule.date} at {schedule.departureTime}</span>
+            <span>{schedule.date} at {schedule.departure_time}</span>
           </div>
           
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -101,48 +120,57 @@ export function CheckoutModal({ schedule, selectedSeats, open, onClose, onSucces
           </div>
         </div>
 
-        {/* Passenger Form */}
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="passengerName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Passenger Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter full name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {!user ? (
+          <div className="text-center py-4">
+            <p className="text-muted-foreground mb-4">Please login to complete your booking</p>
+            <Button onClick={handleLoginClick} className="w-full">
+              <LogIn className="h-4 w-4 mr-2" />
+              Login to Continue
+            </Button>
+          </div>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="passengerName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Passenger Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter full name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="passengerEmail"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email Address</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter email for ticket" type="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="passengerEmail"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter email for ticket" type="email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="flex gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading} className="flex-1">
-                <CreditCard className="h-4 w-4 mr-2" />
-                {isLoading ? 'Processing...' : 'Confirm Booking'}
-              </Button>
-            </div>
-          </form>
-        </Form>
+              <div className="flex gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isLoading} className="flex-1">
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  {isLoading ? 'Processing...' : 'Confirm Booking'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

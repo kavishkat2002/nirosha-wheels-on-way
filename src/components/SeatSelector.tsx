@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Schedule, getBusById, getRouteById, getBookedSeats } from "@/lib/data";
+import { Schedule, fetchBookedSeats } from "@/lib/api";
+import { Loader2 } from "lucide-react";
 
 interface SeatSelectorProps {
   schedule: Schedule;
@@ -12,9 +13,17 @@ interface SeatSelectorProps {
 
 export function SeatSelector({ schedule, onConfirm, onBack }: SeatSelectorProps) {
   const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
-  const bus = getBusById(schedule.busId);
-  const route = getRouteById(schedule.routeId);
-  const bookedSeats = getBookedSeats(schedule.id);
+  const [bookedSeats, setBookedSeats] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const bus = schedule.bus;
+  const route = schedule.route;
+
+  useEffect(() => {
+    fetchBookedSeats(schedule.id)
+      .then(setBookedSeats)
+      .finally(() => setLoading(false));
+  }, [schedule.id]);
 
   if (!bus || !route) return null;
 
@@ -35,7 +44,7 @@ export function SeatSelector({ schedule, onConfirm, onBack }: SeatSelectorProps)
   };
 
   // Create seat layout: 4 columns with aisle
-  const rows = Math.ceil(bus.totalSeats / 4);
+  const rows = Math.ceil(bus.total_seats / 4);
   const seatLayout = Array.from({ length: rows }, (_, rowIndex) => {
     const seatStart = rowIndex * 4 + 1;
     return [
@@ -44,10 +53,18 @@ export function SeatSelector({ schedule, onConfirm, onBack }: SeatSelectorProps)
       null, // aisle
       seatStart + 2,
       seatStart + 3,
-    ].filter((seat): seat is number | null => seat === null || seat <= bus.totalSeats);
+    ].filter((seat): seat is number | null => seat === null || seat <= bus.total_seats);
   });
 
   const totalPrice = selectedSeats.length * schedule.price;
+
+  if (loading) {
+    return (
+      <div className="bg-card rounded-xl shadow-xl p-12 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card rounded-xl shadow-xl overflow-hidden">
@@ -57,7 +74,7 @@ export function SeatSelector({ schedule, onConfirm, onBack }: SeatSelectorProps)
           <div>
             <h2 className="text-xl font-bold text-primary-foreground">{bus.name}</h2>
             <p className="text-primary-foreground/80">
-              {route.source} → {route.destination} | {schedule.departureTime}
+              {route.source} → {route.destination} | {schedule.departure_time}
             </p>
           </div>
           <Badge variant="secondary" className="w-fit">

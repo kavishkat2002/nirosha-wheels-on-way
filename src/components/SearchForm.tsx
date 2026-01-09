@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, MapPin, ArrowRight, Search } from "lucide-react";
+import { CalendarIcon, MapPin, ArrowRight, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { getLocations } from "@/lib/data";
+import { fetchLocations } from "@/lib/api";
 
 interface SearchFormProps {
   onSearch: (source: string, destination: string, date: string) => void;
@@ -26,13 +26,28 @@ export function SearchForm({ onSearch }: SearchFormProps) {
   const [source, setSource] = useState("");
   const [destination, setDestination] = useState("");
   const [date, setDate] = useState<Date>();
-  const locations = getLocations();
+  const [locations, setLocations] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLocations()
+      .then(setLocations)
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleSearch = () => {
     if (source && destination && date) {
       onSearch(source, destination, format(date, "yyyy-MM-dd"));
     }
   };
+
+  if (loading) {
+    return (
+      <div className="bg-card rounded-xl shadow-xl p-6 md:p-8 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card rounded-xl shadow-xl p-6 md:p-8">

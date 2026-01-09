@@ -1,24 +1,24 @@
 import { QrCode, Check, MapPin, Calendar, Clock, Bus, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Booking, getScheduleById, getBusById, getRouteById } from "@/lib/data";
+import { Booking, Schedule } from "@/lib/api";
 
 interface TicketDisplayProps {
   bookings: Booking[];
+  schedule: Schedule;
   onBookAnother: () => void;
 }
 
-export function TicketDisplay({ bookings, onBookAnother }: TicketDisplayProps) {
+export function TicketDisplay({ bookings, schedule, onBookAnother }: TicketDisplayProps) {
   if (bookings.length === 0) return null;
 
   const firstBooking = bookings[0];
-  const schedule = getScheduleById(firstBooking.scheduleId);
-  const bus = schedule ? getBusById(schedule.busId) : null;
-  const route = schedule ? getRouteById(schedule.routeId) : null;
+  const bus = schedule.bus;
+  const route = schedule.route;
 
-  if (!schedule || !bus || !route) return null;
+  if (!bus || !route) return null;
 
-  const seatNumbers = bookings.map(b => b.seatNumber).sort((a, b) => a - b);
+  const seatNumbers = bookings.map(b => b.seat_number).sort((a, b) => a - b);
   const totalAmount = bookings.length * schedule.price;
   const bookingRef = `NPS-${Date.now().toString(36).toUpperCase()}`;
 
@@ -31,7 +31,7 @@ export function TicketDisplay({ bookings, onBookAnother }: TicketDisplayProps) {
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-2">Booking Confirmed!</h2>
         <p className="text-muted-foreground">
-          Your e-ticket has been sent to {firstBooking.passengerEmail}
+          Your e-ticket has been sent to {firstBooking.passenger_email}
         </p>
       </div>
 
@@ -70,12 +70,12 @@ export function TicketDisplay({ bookings, onBookAnother }: TicketDisplayProps) {
                     <div className="mb-6">
                       <p className="text-xs text-muted-foreground">FROM</p>
                       <p className="font-semibold text-card-foreground">{route.source}</p>
-                      <p className="text-sm text-muted-foreground">{schedule.departureTime}</p>
+                      <p className="text-sm text-muted-foreground">{schedule.departure_time}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">TO</p>
                       <p className="font-semibold text-card-foreground">{route.destination}</p>
-                      <p className="text-sm text-muted-foreground">{schedule.arrivalTime}</p>
+                      <p className="text-sm text-muted-foreground">{schedule.arrival_time}</p>
                     </div>
                   </div>
                 </div>
@@ -124,8 +124,8 @@ export function TicketDisplay({ bookings, onBookAnother }: TicketDisplayProps) {
             <div className="bg-muted/50 rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <p className="text-xs text-muted-foreground">Passenger</p>
-                <p className="font-semibold text-card-foreground">{firstBooking.passengerName}</p>
-                <p className="text-sm text-muted-foreground">{firstBooking.passengerEmail}</p>
+                <p className="font-semibold text-card-foreground">{firstBooking.passenger_name}</p>
+                <p className="text-sm text-muted-foreground">{firstBooking.passenger_email}</p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">Total Amount</p>
