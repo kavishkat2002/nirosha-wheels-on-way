@@ -1,13 +1,78 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BusManagement } from "@/components/admin/BusManagement";
 import { ScheduleManagement } from "@/components/admin/ScheduleManagement";
 import { BookingOverview } from "@/components/admin/BookingOverview";
-import { Bus, Calendar, ClipboardList } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { Bus, Calendar, ClipboardList, Loader2, ShieldX, LogIn } from "lucide-react";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("buses");
+  const { user } = useAuth();
+  const { isAdmin, loading } = useAdminCheck();
+  const navigate = useNavigate();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-16">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="py-12 text-center">
+              <LogIn className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-foreground mb-2">Login Required</h2>
+              <p className="text-muted-foreground mb-6">
+                Please login to access the admin panel
+              </p>
+              <Button onClick={() => navigate("/auth")}>
+                Login
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-16">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="py-12 text-center">
+              <ShieldX className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-foreground mb-2">Access Denied</h2>
+              <p className="text-muted-foreground mb-6">
+                You don't have permission to access the admin panel. 
+                Only administrators can manage buses and schedules.
+              </p>
+              <Button onClick={() => navigate("/")}>
+                Go to Home
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
