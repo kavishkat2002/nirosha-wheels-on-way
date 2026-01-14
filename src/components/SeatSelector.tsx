@@ -29,8 +29,8 @@ export function SeatSelector({ schedule, onConfirm, onBack }: SeatSelectorProps)
 
   const toggleSeat = (seatNumber: number) => {
     if (bookedSeats.includes(seatNumber)) return;
-    
-    setSelectedSeats(prev => 
+
+    setSelectedSeats(prev =>
       prev.includes(seatNumber)
         ? prev.filter(s => s !== seatNumber)
         : [...prev, seatNumber]
@@ -43,18 +43,33 @@ export function SeatSelector({ schedule, onConfirm, onBack }: SeatSelectorProps)
     return 'available';
   };
 
-  // Create seat layout: 4 columns with aisle
-  const rows = Math.ceil(bus.total_seats / 4);
-  const seatLayout = Array.from({ length: rows }, (_, rowIndex) => {
-    const seatStart = rowIndex * 4 + 1;
-    return [
-      seatStart,
-      seatStart + 1,
-      null, // aisle
-      seatStart + 2,
-      seatStart + 3,
-    ].filter((seat): seat is number | null => seat === null || seat <= bus.total_seats);
-  });
+  // Create seat layout: 4 columns with aisle, last row parallel (5 seats)
+  const seatLayout: (number | null)[][] = [];
+  let currentSeat = 1;
+
+  while (currentSeat <= bus.total_seats) {
+    const remainingSeats = bus.total_seats - currentSeat + 1;
+
+    // If it's the last row (5 or fewer seats remaining), show them parallel
+    if (remainingSeats <= 5) {
+      const lastRow: number[] = [];
+      for (let i = 0; i < remainingSeats; i++) {
+        lastRow.push(currentSeat + i);
+      }
+      seatLayout.push(lastRow);
+      break;
+    } else {
+      // Standard row: 2 seats, aisle, 2 seats
+      seatLayout.push([
+        currentSeat,
+        currentSeat + 1,
+        null, // aisle
+        currentSeat + 2,
+        currentSeat + 3,
+      ]);
+      currentSeat += 4;
+    }
+  }
 
   const totalPrice = selectedSeats.length * schedule.price;
 
@@ -160,7 +175,7 @@ export function SeatSelector({ schedule, onConfirm, onBack }: SeatSelectorProps)
             <Button variant="outline" onClick={onBack}>
               Back to Results
             </Button>
-            <Button 
+            <Button
               onClick={() => onConfirm(selectedSeats)}
               disabled={selectedSeats.length === 0}
             >

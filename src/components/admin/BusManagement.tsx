@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -29,19 +29,36 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getBuses, addBus, removeBus, Bus } from "@/lib/data";
-import { Plus, Trash2, Bus as BusIcon } from "lucide-react";
+import { fetchBuses, addBus, removeBus, Bus } from "@/lib/api";
+import { Plus, Trash2, Bus as BusIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const formSchema = z.object({
   name: z.string().min(2, "Bus name is required"),
   number: z.string().min(2, "Bus number is required"),
   type: z.enum(["AC", "Non-AC"]),
-  totalSeats: z.coerce.number().min(10).max(60),
+  total_seats: z.coerce.number().min(10).max(60),
 });
 
 export function BusManagement() {
-  const [buses, setBuses] = useState<Bus[]>(getBuses());
+  const [buses, setBuses] = useState<Bus[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadBuses();
+  }, []);
+
+  const loadBuses = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchBuses();
+      setBuses(data);
+    } catch (error) {
+      toast.error("Failed to load buses");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -49,27 +66,31 @@ export function BusManagement() {
       name: "",
       number: "",
       type: "AC",
-      totalSeats: 40,
+      total_seats: 40,
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const busData = {
-      name: values.name,
-      number: values.number,
-      type: values.type,
-      totalSeats: values.totalSeats,
-    };
-    addBus(busData);
-    setBuses(getBuses());
-    form.reset();
-    toast.success("Bus added successfully");
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      await addBus(values as any);
+      await loadBuses();
+      form.reset();
+      toast.success("Bus added successfully");
+    } catch (error: any) {
+      console.error("Add bus error:", error);
+      toast.error(error.message || "Failed to add bus");
+    }
   };
 
-  const handleRemove = (id: string) => {
-    removeBus(id);
-    setBuses(getBuses());
-    toast.success("Bus removed successfully");
+  const handleRemove = async (id: string) => {
+    try {
+      await removeBus(id);
+      await loadBuses();
+      toast.success("Bus removed successfully");
+    } catch (error: any) {
+      console.error("Remove bus error:", error);
+      toast.error(error.message || "Failed to remove bus");
+    }
   };
 
   return (
@@ -137,7 +158,7 @@ export function BusManagement() {
 
               <FormField
                 control={form.control}
-                name="totalSeats"
+                name="total_seats"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Total Seats</FormLabel>
@@ -149,8 +170,12 @@ export function BusManagement() {
                 )}
               />
 
-              <Button type="submit" className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
                 Add Bus
               </Button>
             </form>
@@ -178,27 +203,42 @@ export function BusManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {buses.map((bus) => (
-                <TableRow key={bus.id}>
-                  <TableCell className="font-medium">{bus.name}</TableCell>
-                  <TableCell>{bus.number}</TableCell>
-                  <TableCell>
-                    <Badge variant={bus.type === 'AC' ? 'default' : 'secondary'}>
-                      {bus.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{bus.totalSeats}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleRemove(bus.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                    <p className="text-sm text-muted-foreground mt-2">Loading buses...</p>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : buses.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    No buses found. Add one to get started.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                buses.map((bus) => (
+                  <TableRow key={bus.id}>
+                    <TableCell className="font-medium">{bus.name}</TableCell>
+                    <TableCell>{bus.number}</TableCell>
+                    <TableCell>
+                      <Badge variant={bus.type === 'AC' ? 'default' : 'secondary'}>
+                        {bus.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{bus.total_seats}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleRemove(bus.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

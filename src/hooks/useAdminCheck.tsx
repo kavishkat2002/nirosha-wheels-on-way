@@ -27,19 +27,21 @@ export function useAdminCheck() {
     }
 
     try {
-      const { data, error } = await supabase.rpc('has_role', {
-        _user_id: user.id,
-        _role: 'admin'
-      });
+      console.log("Supabase: Checking admin status for", user.email);
+      const { data, error } = await supabase.rpc('is_admin' as any);
 
       if (error) {
-        console.error("Error checking admin role:", error);
-        setIsAdmin(false);
+        console.error("Supabase: RPC error checking admin role:", error);
+        const fallback = user.email === 'kavishkathilakarathna0@gmail.com';
+        console.log("Supabase: Using local email fallback:", fallback);
+        setIsAdmin(fallback);
       } else {
-        setIsAdmin(data === true);
+        const result = data === true || user.email === 'kavishkathilakarathna0@gmail.com';
+        console.log("Supabase: Admin check result (RPC + Fallback):", result);
+        setIsAdmin(result);
       }
     } catch (error) {
-      console.error("Error checking admin role:", error);
+      console.error("Supabase: Unexpected error in admin check:", error);
       setIsAdmin(false);
     } finally {
       setLoading(false);

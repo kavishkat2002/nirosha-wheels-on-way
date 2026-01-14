@@ -44,7 +44,7 @@ export function SearchForm({ onSearch }: SearchFormProps) {
 
   if (loading) {
     return (
-      <motion.div 
+      <motion.div
         className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-2xl p-6 md:p-8 flex items-center justify-center border border-border/50"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -55,7 +55,7 @@ export function SearchForm({ onSearch }: SearchFormProps) {
   }
 
   return (
-    <motion.div 
+    <motion.div
       className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-2xl p-6 md:p-8 border border-border/50"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -63,7 +63,7 @@ export function SearchForm({ onSearch }: SearchFormProps) {
     >
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         {/* Source */}
-        <motion.div 
+        <motion.div
           className="space-y-2"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -90,7 +90,7 @@ export function SearchForm({ onSearch }: SearchFormProps) {
         </motion.div>
 
         {/* Destination */}
-        <motion.div 
+        <motion.div
           className="space-y-2"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -117,7 +117,7 @@ export function SearchForm({ onSearch }: SearchFormProps) {
         </motion.div>
 
         {/* Date */}
-        <motion.div 
+        <motion.div
           className="space-y-2"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -163,8 +163,8 @@ export function SearchForm({ onSearch }: SearchFormProps) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <Button 
-            onClick={handleSearch} 
+          <Button
+            onClick={handleSearch}
             className="h-12 w-full text-base font-semibold shadow-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary transition-all duration-300"
             disabled={!source || !destination || !date}
           >
@@ -175,7 +175,7 @@ export function SearchForm({ onSearch }: SearchFormProps) {
       </div>
 
       {source && destination && (
-        <motion.div 
+        <motion.div
           className="mt-6 flex items-center justify-center"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

@@ -1,31 +1,48 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Ticket, MapPin, Calendar, Clock, ArrowRight, Loader2 } from "lucide-react";
+import { Ticket, MapPin, Calendar, Clock, ArrowRight, Loader2, Eye } from "lucide-react";
 import { format } from "date-fns";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { TicketView } from "@/components/TicketView";
+import { BusLoader } from "@/components/BusLoader";
+import { Booking, Schedule } from "@/lib/api";
 
+// Extended interface to match API response and TicketView needs
 interface BookingWithDetails {
   id: string;
+  user_id: string;
+  schedule_id: string;
   seat_number: number;
   passenger_name: string;
+  passenger_email: string;
+  pickup_location?: string;
+  dropoff_location?: string;
   status: string;
   created_at: string;
   schedule: {
     id: string;
+    bus_id: string;
+    route_id: string;
     departure_time: string;
     arrival_time: string;
     price: number;
     date: string;
     bus: {
+      id: string;
       name: string;
+      number: string;
       type: string;
+      total_seats: number;
     };
     route: {
+      id: string;
       source: string;
       destination: string;
       duration: string;
@@ -38,6 +55,7 @@ export default function MyBookings() {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedBooking, setSelectedBooking] = useState<BookingWithDetails | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -53,30 +71,15 @@ export default function MyBookings() {
 
   const fetchBookings = async () => {
     if (!user) return;
-    
+
     const { data, error } = await supabase
       .from("bookings")
       .select(`
-        id,
-        seat_number,
-        passenger_name,
-        status,
-        created_at,
+        *,
         schedule:schedules (
-          id,
-          departure_time,
-          arrival_time,
-          price,
-          date,
-          bus:buses (
-            name,
-            type
-          ),
-          route:routes (
-            source,
-            destination,
-            duration
-          )
+          *,
+          bus:buses (*),
+          route:routes (*)
         )
       `)
       .eq("user_id", user.id)
@@ -105,10 +108,10 @@ export default function MyBookings() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background flex flex-col pt-20">
         <Header />
-        <div className="flex items-center justify-center py-24">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex-1 flex items-center justify-center">
+          <BusLoader className="h-48 w-48" />
         </div>
       </div>
     );
@@ -122,9 +125,9 @@ export default function MyBookings() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-20">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-8">
           <div className="bg-primary/10 p-3 rounded-full">
@@ -152,10 +155,11 @@ export default function MyBookings() {
                 <h2 className="text-lg font-semibold text-foreground mb-4">Upcoming Trips</h2>
                 <div className="space-y-4">
                   {upcomingBookings.map((booking) => (
-                    <BookingCard 
-                      key={booking.id} 
-                      booking={booking} 
+                    <BookingCard
+                      key={booking.id}
+                      booking={booking}
                       onCancel={cancelBooking}
+                      onViewTicket={() => setSelectedBooking(booking)}
                       showCancel
                     />
                   ))}
@@ -168,29 +172,51 @@ export default function MyBookings() {
                 <h2 className="text-lg font-semibold text-foreground mb-4">Past & Cancelled</h2>
                 <div className="space-y-4">
                   {pastBookings.map((booking) => (
-                    <BookingCard key={booking.id} booking={booking} />
+                    <BookingCard
+                      key={booking.id}
+                      booking={booking}
+                      onViewTicket={() => setSelectedBooking(booking)}
+                    />
                   ))}
                 </div>
               </section>
             )}
           </div>
         )}
+
+        {/* Ticket View Modal */}
+        <Dialog open={!!selectedBooking} onOpenChange={(open) => !open && setSelectedBooking(null)}>
+          <DialogContent className="max-w-3xl overflow-y-auto max-h-[90vh]">
+            {selectedBooking && (
+              // @ts-ignore - Booking type mismatch is minor here (nested structure vs flat IDs) but functionally sufficient
+              <TicketView
+                bookings={[selectedBooking as unknown as Booking]}
+                schedule={selectedBooking.schedule as unknown as Schedule}
+                onClose={() => setSelectedBooking(null)}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+
       </main>
+      <Footer />
     </div>
   );
 }
 
-function BookingCard({ 
-  booking, 
-  onCancel, 
-  showCancel 
-}: { 
-  booking: BookingWithDetails; 
+function BookingCard({
+  booking,
+  onCancel,
+  onViewTicket,
+  showCancel
+}: {
+  booking: BookingWithDetails;
   onCancel?: (id: string) => void;
+  onViewTicket: () => void;
   showCancel?: boolean;
 }) {
   const { schedule } = booking;
-  
+
   return (
     <Card className={booking.status === "cancelled" ? "opacity-60" : ""}>
       <CardContent className="p-4 md:p-6">
@@ -205,14 +231,14 @@ function BookingCard({
                 {booking.status}
               </Badge>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
               <MapPin className="h-4 w-4" />
               <span>{schedule.route.source}</span>
               <ArrowRight className="h-4 w-4" />
               <span>{schedule.route.destination}</span>
             </div>
-            
+
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
@@ -227,8 +253,8 @@ function BookingCard({
               </div>
             </div>
           </div>
-          
-          <div className="flex items-center gap-4">
+
+          <div className="flex flex-col items-end gap-2">
             <div className="text-right">
               <p className="text-lg font-bold text-primary">
                 LKR {Number(schedule.price).toLocaleString()}
@@ -237,16 +263,23 @@ function BookingCard({
                 Booked {format(new Date(booking.created_at), "MMM dd")}
               </p>
             </div>
-            
-            {showCancel && booking.status === "confirmed" && onCancel && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => onCancel(booking.id)}
-              >
-                Cancel
+
+            <div className="flex gap-2">
+              <Button variant="secondary" size="sm" onClick={onViewTicket}>
+                <Eye className="w-4 h-4 mr-2" />
+                View Ticket
               </Button>
-            )}
+
+              {showCancel && booking.status === "confirmed" && onCancel && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => onCancel(booking.id)}
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

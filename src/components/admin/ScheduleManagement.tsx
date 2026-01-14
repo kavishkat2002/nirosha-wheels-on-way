@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -36,64 +36,102 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  getSchedules, 
-  getBuses, 
-  getRoutes, 
-  addSchedule, 
-  removeSchedule, 
-  getBusById, 
-  getRouteById,
-  Schedule 
-} from "@/lib/data";
-import { Plus, Trash2, Calendar as CalendarIcon, Clock } from "lucide-react";
+import {
+  fetchSchedules,
+  fetchBuses,
+  fetchRoutes,
+  addSchedule,
+  removeSchedule,
+  Schedule,
+  Bus,
+  Route
+} from "@/lib/api";
+import { Plus, Trash2, Calendar as CalendarIcon, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
-  busId: z.string().min(1, "Select a bus"),
-  routeId: z.string().min(1, "Select a route"),
-  departureTime: z.string().min(1, "Enter departure time"),
-  arrivalTime: z.string().min(1, "Enter arrival time"),
+  bus_id: z.string().min(1, "Select a bus"),
+  route_id: z.string().min(1, "Select a route"),
+  departure_time: z.string().min(1, "Enter departure time"),
+  arrival_time: z.string().min(1, "Enter arrival time"),
   price: z.coerce.number().min(1, "Price is required"),
   date: z.date({ required_error: "Select a date" }),
 });
 
 export function ScheduleManagement() {
-  const [schedules, setSchedules] = useState<Schedule[]>(getSchedules());
-  const buses = getBuses();
-  const routes = getRoutes();
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [buses, setBuses] = useState<Bus[]>([]);
+  const [routes, setRoutes] = useState<Route[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      const [schedulesData, busesData, routesData] = await Promise.all([
+        fetchSchedules(),
+        fetchBuses(),
+        fetchRoutes()
+      ]);
+      setSchedules(schedulesData);
+      setBuses(busesData);
+      setRoutes(routesData);
+    } catch (error) {
+      toast.error("Failed to load initial data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadSchedules = async () => {
+    try {
+      const data = await fetchSchedules();
+      setSchedules(data);
+    } catch (error) {
+      toast.error("Failed to load schedules");
+    }
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      busId: "",
-      routeId: "",
-      departureTime: "",
-      arrivalTime: "",
-      price: 1000,
+      bus_id: "",
+      route_id: "",
+      departure_time: "",
+      arrival_time: "",
+      price: 1500,
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const scheduleData = {
-      busId: values.busId,
-      routeId: values.routeId,
-      departureTime: values.departureTime,
-      arrivalTime: values.arrivalTime,
-      price: values.price,
-      date: format(values.date, "yyyy-MM-dd"),
-    };
-    addSchedule(scheduleData);
-    setSchedules(getSchedules());
-    form.reset();
-    toast.success("Schedule added successfully");
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const scheduleData = {
+        ...values,
+        date: format(values.date, "yyyy-MM-dd"),
+      };
+      await addSchedule(scheduleData as any);
+      await loadInitialData();
+      form.reset();
+      toast.success("Schedule added successfully");
+    } catch (error: any) {
+      console.error("Add schedule error:", error);
+      toast.error(error.message || "Failed to add schedule");
+    }
   };
 
-  const handleRemove = (id: string) => {
-    removeSchedule(id);
-    setSchedules(getSchedules());
-    toast.success("Schedule removed successfully");
+  const handleRemove = async (id: string) => {
+    try {
+      await removeSchedule(id);
+      await loadInitialData();
+      toast.success("Schedule removed successfully");
+    } catch (error: any) {
+      console.error("Remove schedule error:", error);
+      toast.error(error.message || "Failed to remove schedule");
+    }
   };
 
   return (
@@ -111,7 +149,7 @@ export function ScheduleManagement() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="busId"
+                name="bus_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Bus</FormLabel>
@@ -136,7 +174,7 @@ export function ScheduleManagement() {
 
               <FormField
                 control={form.control}
-                name="routeId"
+                name="route_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Route</FormLabel>
@@ -183,7 +221,7 @@ export function ScheduleManagement() {
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value}
+                          selected={field.value as any}
                           onSelect={field.onChange}
                           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                           initialFocus
@@ -199,12 +237,12 @@ export function ScheduleManagement() {
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="departureTime"
+                  name="departure_time"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Departure</FormLabel>
                       <FormControl>
-                        <Input type="time" {...field} />
+                        <Input type="time" {...field as any} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -213,12 +251,12 @@ export function ScheduleManagement() {
 
                 <FormField
                   control={form.control}
-                  name="arrivalTime"
+                  name="arrival_time"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Arrival</FormLabel>
                       <FormControl>
-                        <Input type="time" {...field} />
+                        <Input type="time" {...field as any} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -233,15 +271,19 @@ export function ScheduleManagement() {
                   <FormItem>
                     <FormLabel>Price (LKR)</FormLabel>
                     <FormControl>
-                      <Input type="number" min={1} {...field} />
+                      <Input type="number" min={1} {...field as any} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <Button type="submit" className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
                 Add Schedule
               </Button>
             </form>
@@ -271,23 +313,33 @@ export function ScheduleManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {schedules.map((schedule) => {
-                  const bus = getBusById(schedule.busId);
-                  const route = getRouteById(schedule.routeId);
-                  return (
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                    </TableCell>
+                  </TableRow>
+                ) : schedules.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      No schedules found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  schedules.map((schedule) => (
                     <TableRow key={schedule.id}>
                       <TableCell>
                         <div>
-                          <span className="font-medium">{bus?.name}</span>
-                          <Badge variant="outline" className="ml-2">{bus?.type}</Badge>
+                          <span className="font-medium">{schedule.bus?.name}</span>
+                          <Badge variant="outline" className="ml-2">{schedule.bus?.type}</Badge>
                         </div>
                       </TableCell>
                       <TableCell>
-                        {route?.source} → {route?.destination}
+                        {schedule.route?.source} → {schedule.route?.destination}
                       </TableCell>
                       <TableCell>{schedule.date}</TableCell>
                       <TableCell>
-                        {schedule.departureTime} - {schedule.arrivalTime}
+                        {schedule.departure_time} - {schedule.arrival_time}
                       </TableCell>
                       <TableCell>LKR {schedule.price.toLocaleString()}</TableCell>
                       <TableCell className="text-right">
@@ -300,8 +352,8 @@ export function ScheduleManagement() {
                         </Button>
                       </TableCell>
                     </TableRow>
-                  );
-                })}
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

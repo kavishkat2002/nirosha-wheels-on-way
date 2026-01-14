@@ -147,7 +147,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased transition-colors duration-500 ease-in-out;
   }
 }
 
@@ -155,24 +155,58 @@ All colors MUST be HSL.
   .glass {
     @apply bg-white/10 backdrop-blur-md border border-white/20;
   }
-  
+
   .glass-dark {
     @apply bg-black/20 backdrop-blur-md border border-white/10;
   }
-  
+
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-primary;
   }
-  
+
   .hover-lift {
     @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl;
   }
-  
+
   .glow {
     box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
   }
-  
+
   .glow-secondary {
     box-shadow: 0 0 20px hsl(var(--secondary) / 0.4);
+  }
+
+  .premium-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+  }
+
+  .premium-scrollbar::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .premium-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .premium-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 20px;
+    transition: background 0.3s ease;
+  }
+
+  .premium-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  .scroll-shadow-v {
+    background:
+      linear-gradient(hsl(var(--popover)) 30%, transparent),
+      linear-gradient(transparent, hsl(var(--popover)) 70%) 0 100%,
+      radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, .1), transparent),
+      radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, .1), transparent) 0 100%;
+    background-repeat: no-repeat;
+    background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+    background-attachment: local, local, scroll, scroll;
   }
 }

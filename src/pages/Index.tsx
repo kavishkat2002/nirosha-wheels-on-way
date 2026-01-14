@@ -1,4 +1,4 @@
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
 import { SearchForm } from "@/components/SearchForm";
@@ -6,14 +6,16 @@ import { BusCard } from "@/components/BusCard";
 import { SeatSelector } from "@/components/SeatSelector";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { TicketDisplay } from "@/components/TicketDisplay";
+import { Footer } from "@/components/Footer";
 import { Scene3D } from "@/components/Scene3D";
-import { 
-  FadeInOnScroll, 
-  StaggerChildren, 
-  StaggerItem, 
-  ParallaxSection 
+import {
+  FadeInOnScroll,
+  StaggerChildren,
+  StaggerItem,
+  ParallaxSection
 } from "@/components/ScrollAnimations";
-import { Schedule, Booking, fetchSchedules } from "@/lib/api";
+import { BusLoader } from "@/components/BusLoader";
+import { Schedule, Booking, fetchSchedules, fetchPopularRoutes } from "@/lib/api";
 import { Bus, MapPin, Shield, Clock, Loader2, Users, Star, Sparkles } from "lucide-react";
 
 type BookingStep = 'search' | 'select-seat' | 'ticket';
@@ -27,6 +29,12 @@ const Index = () => {
   const [confirmedBookings, setConfirmedBookings] = useState<Booking[]>([]);
   const [searchParams, setSearchParams] = useState({ source: '', destination: '', date: '' });
   const [isSearching, setIsSearching] = useState(false);
+  const [popularRoutes, setPopularRoutes] = useState<{ from: string; to: string; duration: string; price: string }[]>([]);
+
+  useEffect(() => {
+    // Load popular routes
+    fetchPopularRoutes().then(setPopularRoutes);
+  }, []);
 
   const handleSearch = async (source: string, destination: string, date: string) => {
     setSearchParams({ source, destination, date });
@@ -71,20 +79,20 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <Header />
-      
+
       <AnimatePresence mode="wait">
         {step === 'ticket' && selectedSchedule ? (
-          <motion.main 
+          <motion.main
             key="ticket"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="container mx-auto px-4 py-12"
+            className="container mx-auto px-4 pt-24 pb-12"
           >
-            <TicketDisplay 
-              bookings={confirmedBookings} 
+            <TicketDisplay
+              bookings={confirmedBookings}
               schedule={selectedSchedule}
-              onBookAnother={handleBookAnother} 
+              onBookAnother={handleBookAnother}
             />
           </motion.main>
         ) : (
@@ -97,18 +105,21 @@ const Index = () => {
             {/* Hero Section with 3D Background */}
             <section className="relative min-h-[600px] md:min-h-[700px] flex items-center overflow-hidden">
               {/* 3D Scene Background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#0f172a] via-[#1e3a5f] to-[#0f172a]">
-                <Suspense fallback={null}>
-                  <Scene3D />
-                </Suspense>
+              {/* Image Background */}
+              <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: "url('/cover_bus_4k.jpg')" }}
+              >
+                {/* Dark overlay for readability */}
+                <div className="absolute inset-0 bg-black/40" />
               </div>
-              
+
               {/* Overlay gradient */}
               <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-              
+
               {/* Content */}
               <div className="container mx-auto px-4 relative z-10 py-12">
-                <motion.div 
+                <motion.div
                   className="text-center mb-10"
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -123,8 +134,8 @@ const Index = () => {
                     <Sparkles className="h-4 w-4" />
                     Sri Lanka's Trusted Bus Service
                   </motion.div>
-                  
-                  <motion.h1 
+
+                  <motion.h1
                     className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -135,18 +146,18 @@ const Index = () => {
                       Comfort & Safety
                     </span>
                   </motion.h1>
-                  
-                  <motion.p 
+
+                  <motion.p
                     className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto mb-8"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
                   >
-                    Book your bus tickets online with Nirosha Passenger Services. 
+                    Book your bus tickets online with Nirosha Passenger Services.
                     Premium comfort, reliable schedules, and affordable prices.
                   </motion.p>
                 </motion.div>
-                
+
                 {step === 'search' && (
                   <motion.div
                     initial={{ opacity: 0, y: 40 }}
@@ -201,7 +212,7 @@ const Index = () => {
                       </p>
                     </div>
                   </FadeInOnScroll>
-                  
+
                   <StaggerChildren className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {[
                       {
@@ -224,13 +235,13 @@ const Index = () => {
                       }
                     ].map((feature, index) => (
                       <StaggerItem key={index}>
-                        <motion.div 
+                        <motion.div
                           className={`relative p-8 rounded-3xl bg-gradient-to-br ${feature.gradient} border border-border/50 overflow-hidden group`}
                           whileHover={{ scale: 1.02 }}
                           transition={{ duration: 0.3 }}
                         >
                           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                          <motion.div 
+                          <motion.div
                             className="inline-flex items-center justify-center w-16 h-16 bg-card rounded-2xl shadow-lg mb-6"
                             whileHover={{ rotate: [0, -10, 10, 0] }}
                             transition={{ duration: 0.5 }}
@@ -249,7 +260,7 @@ const Index = () => {
 
             {/* Popular Routes Section */}
             {step === 'search' && searchResults.length === 0 && !searchParams.source && (
-              <ParallaxSection className="py-20" speed={0.3}>
+              <ParallaxSection className="py-20 bg-gradient-to-br from-background via-secondary/5 to-primary/5" speed={0.3}>
                 <div className="container mx-auto px-4">
                   <FadeInOnScroll>
                     <div className="text-center mb-12">
@@ -261,40 +272,44 @@ const Index = () => {
                       </p>
                     </div>
                   </FadeInOnScroll>
-                  
-                  <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {[
-                      { from: "Colombo", to: "Kandy", duration: "3h 30m", price: "LKR 1,500" },
-                      { from: "Colombo", to: "Galle", duration: "2h 15m", price: "LKR 1,200" },
-                    ].map((route, index) => (
-                      <StaggerItem key={index}>
-                        <motion.div 
-                          className="relative p-6 rounded-2xl bg-card border border-border overflow-hidden group cursor-pointer"
-                          whileHover={{ scale: 1.02 }}
-                        >
-                          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary" />
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="flex flex-col items-center">
-                                <div className="w-3 h-3 rounded-full bg-primary" />
-                                <div className="w-0.5 h-8 bg-border" />
-                                <div className="w-3 h-3 rounded-full bg-secondary" />
+
+                  {popularRoutes.length > 0 ? (
+                    <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {popularRoutes.map((route, index) => (
+                        <StaggerItem key={index}>
+                          <motion.div
+                            className="relative p-6 rounded-2xl bg-card border border-border overflow-hidden group cursor-pointer"
+                            whileHover={{ scale: 1.02 }}
+                          >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary" />
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className="flex flex-col items-center">
+                                  <div className="w-3 h-3 rounded-full bg-primary" />
+                                  <div className="w-0.5 h-8 bg-border" />
+                                  <div className="w-3 h-3 rounded-full bg-secondary" />
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-foreground">{route.from}</p>
+                                  <p className="text-sm text-muted-foreground my-1">{route.duration}</p>
+                                  <p className="font-semibold text-foreground">{route.to}</p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-semibold text-foreground">{route.from}</p>
-                                <p className="text-sm text-muted-foreground my-1">{route.duration}</p>
-                                <p className="font-semibold text-foreground">{route.to}</p>
+                              <div className="text-right">
+                                <p className="text-sm text-muted-foreground">Starting from</p>
+                                <p className="text-2xl font-bold text-primary">{route.price}</p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-sm text-muted-foreground">Starting from</p>
-                              <p className="text-2xl font-bold text-primary">{route.price}</p>
-                            </div>
-                          </div>
-                        </motion.div>
-                      </StaggerItem>
-                    ))}
-                  </StaggerChildren>
+                          </motion.div>
+                        </StaggerItem>
+                      ))}
+                    </StaggerChildren>
+                  ) : (
+                    <div className="text-center text-muted-foreground py-10">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+                      <p>Loading popular routes...</p>
+                    </div>
+                  )}
                 </div>
               </ParallaxSection>
             )}
@@ -304,12 +319,12 @@ const Index = () => {
               <section className="py-16">
                 <div className="container mx-auto px-4 text-center">
                   <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    animate={{ scale: [0.95, 1.05, 0.95] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <Loader2 className="h-10 w-10 text-primary mx-auto" />
+                    <BusLoader className="h-48 w-48 mx-auto" />
                   </motion.div>
-                  <motion.p 
+                  <motion.p
                     className="text-muted-foreground mt-4"
                     animate={{ opacity: [0.5, 1, 0.5] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
@@ -324,7 +339,7 @@ const Index = () => {
             {step === 'search' && !isSearching && searchResults.length > 0 && (
               <section className="py-12">
                 <div className="container mx-auto px-4">
-                  <motion.div 
+                  <motion.div
                     className="flex items-center gap-2 mb-6"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -345,8 +360,8 @@ const Index = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                       >
-                        <BusCard 
-                          schedule={schedule} 
+                        <BusCard
+                          schedule={schedule}
                           onSelect={handleSelectBus}
                         />
                       </motion.div>
@@ -360,7 +375,7 @@ const Index = () => {
             {step === 'search' && !isSearching && searchParams.source && searchResults.length === 0 && (
               <section className="py-16">
                 <div className="container mx-auto px-4 text-center">
-                  <motion.div 
+                  <motion.div
                     className="inline-flex items-center justify-center w-20 h-20 bg-muted rounded-full mb-6"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -370,7 +385,7 @@ const Index = () => {
                   </motion.div>
                   <h3 className="text-2xl font-bold text-foreground mb-2">No buses found</h3>
                   <p className="text-muted-foreground max-w-md mx-auto">
-                    No buses available for {searchParams.source} to {searchParams.destination} on {searchParams.date}. 
+                    No buses available for {searchParams.source} to {searchParams.destination} on {searchParams.date}.
                     Try a different date or route.
                   </p>
                 </div>
@@ -379,13 +394,13 @@ const Index = () => {
 
             {/* Seat Selection */}
             {step === 'select-seat' && selectedSchedule && (
-              <motion.section 
+              <motion.section
                 className="py-12"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
                 <div className="container mx-auto px-4">
-                  <SeatSelector 
+                  <SeatSelector
                     schedule={selectedSchedule}
                     onConfirm={handleConfirmSeats}
                     onBack={() => setStep('search')}
@@ -407,6 +422,8 @@ const Index = () => {
           onSuccess={handleBookingSuccess}
         />
       )}
+
+      <Footer />
     </div>
   );
 };

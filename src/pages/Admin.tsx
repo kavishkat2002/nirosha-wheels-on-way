@@ -6,11 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BusManagement } from "@/components/admin/BusManagement";
 import { ScheduleManagement } from "@/components/admin/ScheduleManagement";
 import { BookingOverview } from "@/components/admin/BookingOverview";
+import { RouteManagement } from "@/components/admin/RouteManagement";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
-import { Bus, Calendar, ClipboardList, Loader2, ShieldX, LogIn } from "lucide-react";
+import { BusLoader } from "@/components/BusLoader";
+import { Bus, Calendar, ClipboardList, Loader2, ShieldX, LogIn, MapPin, Headset } from "lucide-react";
+import { SupportDashboard } from "@/components/admin/SupportDashboard";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("buses");
@@ -20,10 +23,10 @@ const Admin = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background flex flex-col pt-20">
         <Header />
-        <div className="flex items-center justify-center py-24">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex-1 flex items-center justify-center">
+          <BusLoader className="h-48 w-48" />
         </div>
       </div>
     );
@@ -31,7 +34,7 @@ const Admin = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pt-20">
         <Header />
         <main className="container mx-auto px-4 py-16">
           <Card className="max-w-md mx-auto">
@@ -53,7 +56,7 @@ const Admin = () => {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pt-20">
         <Header />
         <main className="container mx-auto px-4 py-16">
           <Card className="max-w-md mx-auto">
@@ -61,7 +64,7 @@ const Admin = () => {
               <ShieldX className="h-12 w-12 text-destructive mx-auto mb-4" />
               <h2 className="text-xl font-bold text-foreground mb-2">Access Denied</h2>
               <p className="text-muted-foreground mb-6">
-                You don't have permission to access the admin panel. 
+                You don't have permission to access the admin panel.
                 Only administrators can manage buses and schedules.
               </p>
               <Button onClick={() => navigate("/")}>
@@ -75,9 +78,9 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-24">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
@@ -85,10 +88,14 @@ const Admin = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList className="grid w-full max-w-2xl grid-cols-5">
             <TabsTrigger value="buses" className="flex items-center gap-2">
               <Bus className="h-4 w-4" />
               <span className="hidden sm:inline">Buses</span>
+            </TabsTrigger>
+            <TabsTrigger value="routes" className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              <span className="hidden sm:inline">Routes</span>
             </TabsTrigger>
             <TabsTrigger value="schedules" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -98,10 +105,18 @@ const Admin = () => {
               <ClipboardList className="h-4 w-4" />
               <span className="hidden sm:inline">Bookings</span>
             </TabsTrigger>
+            <TabsTrigger value="support" className="flex items-center gap-2">
+              <Headset className="h-4 w-4" />
+              <span className="hidden sm:inline">Support</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="buses">
             <BusManagement />
+          </TabsContent>
+
+          <TabsContent value="routes">
+            <RouteManagement />
           </TabsContent>
 
           <TabsContent value="schedules">
@@ -110,6 +125,10 @@ const Admin = () => {
 
           <TabsContent value="bookings">
             <BookingOverview />
+          </TabsContent>
+
+          <TabsContent value="support">
+            <SupportDashboard />
           </TabsContent>
         </Tabs>
       </main>

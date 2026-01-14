@@ -34,9 +34,14 @@ export interface Booking {
   seat_number: number;
   passenger_name: string;
   passenger_email: string;
+  pickup_location?: string;
+  dropoff_location?: string;
   status: string;
   created_at: string;
+  schedule?: Schedule;
 }
+
+// ... existing code ...
 
 // Fetch all buses
 export async function fetchBuses(): Promise<Bus[]> {
@@ -100,7 +105,9 @@ export async function createBooking(
   scheduleId: string,
   seatNumber: number,
   passengerName: string,
-  passengerEmail: string
+  passengerEmail: string,
+  pickupLocation?: string,
+  dropoffLocation?: string
 ): Promise<Booking> {
   const { data, error } = await supabase
     .from("bookings")
@@ -110,6 +117,8 @@ export async function createBooking(
       seat_number: seatNumber,
       passenger_name: passengerName,
       passenger_email: passengerEmail,
+      pickup_location: pickupLocation,
+      dropoff_location: dropoffLocation,
       status: "confirmed",
     })
     .select()
@@ -125,7 +134,9 @@ export async function createMultipleBookings(
   scheduleId: string,
   seatNumbers: number[],
   passengerName: string,
-  passengerEmail: string
+  passengerEmail: string,
+  pickupLocation?: string,
+  dropoffLocation?: string
 ): Promise<Booking[]> {
   const bookings = seatNumbers.map((seatNumber) => ({
     user_id: userId,
@@ -133,6 +144,8 @@ export async function createMultipleBookings(
     seat_number: seatNumber,
     passenger_name: passengerName,
     passenger_email: passengerEmail,
+    pickup_location: pickupLocation,
+    dropoff_location: dropoffLocation,
     status: "confirmed",
   }));
 
@@ -154,4 +167,147 @@ export async function fetchLocations(): Promise<string[]> {
     locations.add(route.destination);
   });
   return Array.from(locations).sort();
+}
+
+// Admin: Add bus
+export async function addBus(bus: Omit<Bus, "id">): Promise<void> {
+  const { error } = await supabase
+    .from("buses")
+    .insert([{
+      name: bus.name,
+      number: bus.number,
+      total_seats: bus.total_seats,
+      type: bus.type,
+    }]);
+
+  if (error) throw error;
+}
+
+// Admin: Remove bus
+export async function removeBus(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("buses")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
+}
+
+// Admin: Add route
+export async function addRoute(route: Omit<Route, "id">): Promise<void> {
+  const { error } = await supabase
+    .from("routes")
+    .insert([{
+      source: route.source,
+      destination: route.destination,
+      duration: route.duration,
+    }]);
+
+  if (error) throw error;
+}
+
+// Admin: Remove route
+export async function removeRoute(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("routes")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
+}
+
+// Admin: Add schedule
+export async function addSchedule(schedule: Omit<Schedule, "id" | "bus" | "route">): Promise<void> {
+  const { error } = await supabase
+    .from("schedules")
+    .insert([{
+      bus_id: schedule.bus_id,
+      route_id: schedule.route_id,
+      departure_time: schedule.departure_time,
+      arrival_time: schedule.arrival_time,
+      price: schedule.price,
+      date: schedule.date,
+    }]);
+
+  if (error) throw error;
+}
+
+// Admin: Remove schedule
+export async function removeSchedule(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("schedules")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
+}
+
+// Admin: Fetch all bookings
+export async function fetchAllBookings(): Promise<Booking[]> {
+  const { data, error } = await supabase
+    .from("bookings")
+    .select(`
+      *,
+      schedule:schedules(
+        *,
+        bus:buses(*),
+        route:routes(*)
+      )
+    `)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+// Fetch popular routes based on booking count
+export async function fetchPopularRoutes(): Promise<{ from: string; to: string; duration: string; price: string; bookCount: number }[]> {
+  const { data: bookings, error } = await supabase
+    .from("bookings")
+    .select(`
+       schedule:schedules (
+         price,
+         route:routes (
+           source,
+           destination,
+           duration
+         )
+       )
+    `);
+
+  if (error) throw error;
+  if (!bookings) return [];
+
+  // Count bookings per route
+  const routeStats: Record<string, { from: string; to: string; duration: string; price: number; count: number }> = {};
+
+  bookings.forEach((booking: any) => {
+    if (booking.schedule?.route) {
+      const route = booking.schedule.route;
+      const key = `${route.source}-${route.destination}`;
+
+      if (!routeStats[key]) {
+        routeStats[key] = {
+          from: route.source,
+          to: route.destination,
+          duration: route.duration,
+          price: booking.schedule.price, // Use latest price encountered
+          count: 0
+        };
+      }
+      routeStats[key].count++;
+    }
+  });
+
+  // Convert to array and sort by count desc
+  return Object.values(routeStats)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3) // Top 3
+    .map(r => ({
+      from: r.from,
+      to: r.to,
+      duration: r.duration,
+      price: `LKR ${r.price.toLocaleString()}`,
+      bookCount: r.count
+    }));
 }

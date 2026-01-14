@@ -64,7 +64,38 @@ CREATE TABLE public.bookings (
     UNIQUE (schedule_id, seat_number)
 );
 
--- Enable RLS on all tables
+
+-- ==========================================
+-- SECURITY & ACCESS CONTROL (OPTION 2: SIMPLE EMAIL CHECK)
+-- ==========================================
+
+-- 1. Aggressive Cleanup: Drop everything to start fresh
+DROP FUNCTION IF EXISTS public.is_admin() CASCADE;
+DROP FUNCTION IF EXISTS public.is_admin_check() CASCADE;
+DROP FUNCTION IF EXISTS public.has_role() CASCADE;
+
+-- 1.5. Simple is_admin helper for the frontend RPC
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT (auth.jwt()->>'email' = 'kavishkathilakarathna0@gmail.com');
+$$;
+
+DO $$ 
+DECLARE 
+    r RECORD;
+BEGIN
+    FOR r IN (SELECT policyname, tablename FROM pg_policies WHERE schemaname = 'public') 
+    LOOP
+        EXECUTE 'DROP POLICY IF EXISTS "' || r.policyname || '" ON public.' || r.tablename;
+    END LOOP;
+END $$;
+
+-- 2. Enable RLS on all tables
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.buses ENABLE ROW LEVEL SECURITY;
@@ -72,88 +103,45 @@ ALTER TABLE public.routes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.schedules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
 
--- Security definer function to check user role
-CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role app_role)
-RETURNS BOOLEAN
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-    SELECT EXISTS (
-        SELECT 1
-        FROM public.user_roles
-        WHERE user_id = _user_id
-        AND role = _role
-    )
-$$;
+-- 3. DIRECT DATABASE ACCESS (NO RPC) - Simple & Reliable
+-- This approach uses RLS policies directly instead of RPC functions
+-- Eliminates all schema cache and function discovery issues
 
--- Profiles policies
-CREATE POLICY "Users can view their own profile"
-ON public.profiles FOR SELECT
-USING (auth.uid() = user_id);
+-- 4. Bulletproof RLS Policies (Direct Email-Based Access)
+-- BUSES
+CREATE POLICY "Public read buses" ON public.buses FOR SELECT USING (true);
+CREATE POLICY "Admin manage buses" ON public.buses FOR ALL USING (auth.jwt()->>'email' = 'kavishkathilakarathna0@gmail.com');
 
-CREATE POLICY "Users can update their own profile"
-ON public.profiles FOR UPDATE
-USING (auth.uid() = user_id);
+-- ROUTES
+CREATE POLICY "Public read routes" ON public.routes FOR SELECT USING (true);
+CREATE POLICY "Admin manage routes" ON public.routes FOR ALL USING (auth.jwt()->>'email' = 'kavishkathilakarathna0@gmail.com');
 
-CREATE POLICY "Users can insert their own profile"
-ON public.profiles FOR INSERT
-WITH CHECK (auth.uid() = user_id);
+-- SCHEDULES
+CREATE POLICY "Public read schedules" ON public.schedules FOR SELECT USING (true);
+CREATE POLICY "Admin manage schedules" ON public.schedules FOR ALL USING (auth.jwt()->>'email' = 'kavishkathilakarathna0@gmail.com');
 
--- User roles policies
-CREATE POLICY "Users can view their own roles"
-ON public.user_roles FOR SELECT
-USING (auth.uid() = user_id);
+-- BOOKINGS
+CREATE POLICY "Public read bookings" ON public.bookings FOR SELECT USING (true);
+CREATE POLICY "Admin manage all bookings" ON public.bookings FOR ALL USING (auth.jwt()->>'email' = 'kavishkathilakarathna0@gmail.com');
+CREATE POLICY "Users manage own bookings" ON public.bookings FOR ALL USING (auth.uid() = user_id);
 
--- Buses policies (public read, admin write)
-CREATE POLICY "Anyone can view buses"
-ON public.buses FOR SELECT
-TO authenticated, anon
-USING (true);
+-- USER ROLES & PROFILES
+CREATE POLICY "View own profile/role" ON public.profiles FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Admin manage all profiles" ON public.profiles FOR ALL USING (auth.jwt()->>'email' = 'kavishkathilakarathna0@gmail.com');
 
-CREATE POLICY "Admins can manage buses"
-ON public.buses FOR ALL
-TO authenticated
-USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "View own roles" ON public.user_roles FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Admin manage all roles" ON public.user_roles FOR ALL USING (auth.jwt()->>'email' = 'kavishkathilakarathna0@gmail.com');
 
--- Routes policies (public read)
-CREATE POLICY "Anyone can view routes"
-ON public.routes FOR SELECT
-TO authenticated, anon
-USING (true);
+-- 4. Final Permissions Lockdown for 'authenticated' role
+GRANT USAGE ON SCHEMA public TO authenticated, anon;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO anon;
 
-CREATE POLICY "Admins can manage routes"
-ON public.routes FOR ALL
-TO authenticated
-USING (public.has_role(auth.uid(), 'admin'));
-
--- Schedules policies (public read)
-CREATE POLICY "Anyone can view schedules"
-ON public.schedules FOR SELECT
-TO authenticated, anon
-USING (true);
-
-CREATE POLICY "Admins can manage schedules"
-ON public.schedules FOR ALL
-TO authenticated
-USING (public.has_role(auth.uid(), 'admin'));
-
--- Bookings policies
-CREATE POLICY "Anyone can view bookings for seat availability"
-ON public.bookings FOR SELECT
-TO authenticated, anon
-USING (true);
-
-CREATE POLICY "Authenticated users can create bookings"
-ON public.bookings FOR INSERT
-TO authenticated
-WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update their own bookings"
-ON public.bookings FOR UPDATE
-TO authenticated
-USING (auth.uid() = user_id);
+-- ==========================================
+-- AUTOMATION & REPAIR
+-- ==========================================
 
 -- Function to handle new user profile creation
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -167,19 +155,26 @@ BEGIN
     VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'full_name');
     
     INSERT INTO public.user_roles (user_id, role)
-    VALUES (NEW.id, 'user');
+    VALUES (
+        NEW.id, 
+        CASE 
+            WHEN NEW.email = 'kavishkathilakarathna0@gmail.com' THEN 'admin'::public.app_role 
+            ELSE 'user'::public.app_role 
+        END
+    );
     
     RETURN NEW;
 END;
 $$;
 
 -- Trigger for new user creation
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
 AFTER INSERT ON auth.users
 FOR EACH ROW
 EXECUTE FUNCTION public.handle_new_user();
 
--- Function to update timestamps
+-- Trigger for profile updates
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -188,22 +183,25 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SET search_path = public;
 
--- Trigger for profile updates
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles;
 CREATE TRIGGER update_profiles_updated_at
 BEFORE UPDATE ON public.profiles
 FOR EACH ROW
 EXECUTE FUNCTION public.update_updated_at_column();
 
--- Insert seed data
-INSERT INTO public.routes (id, source, destination, duration) VALUES
-    ('11111111-1111-1111-1111-111111111111', 'Colombo', 'Kandy', '3h 30m'),
-    ('22222222-2222-2222-2222-222222222222', 'Colombo', 'Galle', '2h 15m');
-
-INSERT INTO public.buses (id, name, number, type, total_seats) VALUES
-    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Nirosha Express 1', 'NP-1234', 'AC', 40),
-    ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Nirosha King', 'NP-5678', 'Non-AC', 40);
-
-INSERT INTO public.schedules (id, bus_id, route_id, departure_time, arrival_time, price, date) VALUES
-    ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', '08:00', '11:30', 1500.00, CURRENT_DATE + 1),
-    ('dddddddd-dddd-dddd-dddd-dddddddddddd', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '11111111-1111-1111-1111-111111111111', '10:00', '13:30', 1000.00, CURRENT_DATE + 1),
-    ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '22222222-2222-2222-2222-222222222222', '14:00', '16:15', 1200.00, CURRENT_DATE + 1);
+-- Manual repair block to ensure admin user has the role
+DO $$
+DECLARE
+    v_user_id UUID;
+BEGIN
+    SELECT id INTO v_user_id FROM auth.users WHERE email = 'kavishkathilakarathna0@gmail.com';
+    IF v_user_id IS NOT NULL THEN
+        INSERT INTO public.user_roles (user_id, role)
+        VALUES (v_user_id, 'admin')
+        ON CONFLICT (user_id, role) DO NOTHING;
+        
+        INSERT INTO public.profiles (user_id, email)
+        VALUES (v_user_id, 'kavishkathilakarathna0@gmail.com')
+        ON CONFLICT (user_id) DO NOTHING;
+    END IF;
+END $$;

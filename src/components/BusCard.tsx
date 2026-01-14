@@ -15,7 +15,7 @@ export function BusCard({ schedule, onSelect }: BusCardProps) {
   const [bookedSeats, setBookedSeats] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
-  
+
   const bus = schedule.bus;
   const route = schedule.route;
 
@@ -43,13 +43,13 @@ export function BusCard({ schedule, onSelect }: BusCardProps) {
             <div className="flex-1 p-6 relative">
               {/* Decorative line */}
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary via-secondary to-primary" />
-              
+
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-bold text-card-foreground">{bus.name}</h3>
                   <p className="text-sm text-muted-foreground">{bus.number}</p>
                 </div>
-                <Badge 
+                <Badge
                   variant={isAC ? 'default' : 'secondary'}
                   className={`ml-2 ${isAC ? 'bg-primary/90 hover:bg-primary' : ''}`}
                 >
@@ -60,7 +60,7 @@ export function BusCard({ schedule, onSelect }: BusCardProps) {
               {/* Time and Route */}
               <div className="flex items-center gap-4 mb-4">
                 <div className="text-center">
-                  <motion.p 
+                  <motion.p
                     className="text-2xl font-bold text-card-foreground"
                     animate={{ scale: isHovered ? 1.05 : 1 }}
                   >
@@ -70,7 +70,7 @@ export function BusCard({ schedule, onSelect }: BusCardProps) {
                 </div>
                 <div className="flex-1 flex items-center justify-center">
                   <div className="flex-1 border-t-2 border-dashed border-border relative">
-                    <motion.div 
+                    <motion.div
                       className="absolute left-0 top-0 h-0.5 bg-gradient-to-r from-primary to-secondary"
                       initial={{ width: "0%" }}
                       animate={{ width: isHovered ? "100%" : "0%" }}
@@ -89,7 +89,7 @@ export function BusCard({ schedule, onSelect }: BusCardProps) {
                   <div className="flex-1 border-t-2 border-dashed border-border" />
                 </div>
                 <div className="text-center">
-                  <motion.p 
+                  <motion.p
                     className="text-2xl font-bold text-card-foreground"
                     animate={{ scale: isHovered ? 1.05 : 1 }}
                   >
@@ -115,7 +115,7 @@ export function BusCard({ schedule, onSelect }: BusCardProps) {
             {/* Right Section - Price and Action */}
             <div className="bg-gradient-to-br from-muted/50 to-muted/30 p-6 flex flex-col items-center justify-center border-t md:border-t-0 md:border-l border-border min-w-[180px]">
               <p className="text-sm text-muted-foreground mb-1">Starting from</p>
-              <motion.p 
+              <motion.p
                 className="text-3xl font-bold text-primary mb-4"
                 animate={{ scale: isHovered ? 1.1 : 1 }}
                 transition={{ type: "spring", stiffness: 300 }}
@@ -127,7 +127,7 @@ export function BusCard({ schedule, onSelect }: BusCardProps) {
                 whileTap={{ scale: 0.95 }}
                 className="w-full"
               >
-                <Button 
+                <Button
                   onClick={() => onSelect(schedule)}
                   disabled={!loading && availableSeats === 0}
                   className="w-full shadow-lg"

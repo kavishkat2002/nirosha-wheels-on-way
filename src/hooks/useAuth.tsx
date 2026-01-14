@@ -9,6 +9,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  verifyOtp: (email: string, token: string) => Promise<{ error: Error | null; session: Session | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,17 +40,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    const { error } = await supabase.auth.signUp({
+    // Use OTP-based signup - sends 6-digit code to email
+    const { error } = await supabase.auth.signInWithOtp({
       email,
-      password,
       options: {
-        emailRedirectTo: window.location.origin,
+        shouldCreateUser: true,
         data: {
           full_name: fullName,
+          // Store password temporarily so we can set it after OTP verification
+          temp_password: password,
         },
       },
     });
     return { error };
+  };
+
+  const verifyOtp = async (email: string, token: string) => {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email',
+    });
+
+    if (!error && data.session) {
+      setSession(data.session);
+      setUser(data.session.user);
+
+      // Set password after OTP verification
+      const tempPassword = data.session.user.user_metadata?.temp_password;
+      if (tempPassword) {
+        await supabase.auth.updateUser({
+          password: tempPassword,
+        });
+      }
+    }
+
+    return { error, session: data.session };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -65,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, verifyOtp }}>
       {children}
     </AuthContext.Provider>
   );
