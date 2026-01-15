@@ -1,73 +1,109 @@
-# Welcome to your Lovable project
+# Bus Ticket Booking 🚌✨
 
-## Project info
+**Bus Ticket Booking** is a modern, premium bus ticket booking platform designed for the Sri Lankan transport web ecosystem. It provides a seamless experience for passengers to book seats, view schedules, and manage their trips, while offering a powerful dashboard for administrators to manage the fleet and operations.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+![Project Banner](public/og-image.png)
 
-## How can I edit this code?
+## 🚀 Key Features
 
-There are several ways of editing your application.
+### 🌍 For Passengers
+- **Easy Booking**: Search for buses between major Sri Lankan cities (Colombo, Vauniya, Jaffna, etc.).
+- **Interactive Seat Selection**: Visual seat map to pick your preferred spot.
+- **E-Tickets**: Instant booking confirmation with QR Code tickets.
+- **PDF Downloads**: Download high-quality PDF tickets for offline use.
+- **Real-time Support**: 24/7 Chatbot assistance (**Powered by Creative Lab©**) to answer queries and connect with agents.
+- **User Profiles**: Manage your profile and view your booking history.
 
-**Use Lovable**
+### 🛡️ For Administrators
+- **Comprehensive Dashboard**: Overview of revenue, bookings, and active buses.
+- **Fleet Management**: Add, update, or remove buses (AC/Non-AC).
+- **Route & Schedule Manager**: Define routes, stops, and departure times.
+- **Booking Oversight**: View all passenger bookings and export reports.
+- **Support Inbox**: Real-time chat interface to respond to customer inquiries.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 🛠️ Technology Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+This project is built using a modern, robust, and scalable tech stack:
 
-**Use your preferred IDE**
+- **Frontend Framework**: [React](https://reactjs.org/) (v18) + [Vite](https://vitejs.dev/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/) for type safety.
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) for styling and [Framer Motion](https://www.framer.com/motion/) for animations.
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/) for accessible and beautiful components.
+- **Backend & Database**: [Supabase](https://supabase.com/) (PostgreSQL) for:
+  - Authentication (Email/Phone)
+  - Database (Relational Data)
+  - Real-time Subscriptions (Chat & Updates)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **State Management**: React Hooks & Context API.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🏁 Getting Started
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Follow these steps to set up the project locally on your machine.
 
-Follow these steps:
+### Prerequisites
+- Node.js (v18 or higher)
+- npm or yarn
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Installation
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/nirosha-wheels-on-way.git
+   cd nirosha-wheels-on-way
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+3. **Set up Environment Variables**
+   Create a `.env` file in the root directory and add your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   ```
+
+4. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open your browser**
+   Navigate to `http://localhost:8080` to view the application.
+
+## 📂 Project Structure
+
+```
+nirosha-wheels-on-way/
+├── public/              # Static assets (images, icons)
+├── src/
+│   ├── components/      # Reusable UI components (Header, Footer, TicketView)
+│   ├── hooks/           # Custom React hooks (useAuth, useAdminCheck)
+│   ├── integrations/    # External service configurations (Supabase)
+│   ├── lib/             # Utility functions and API calls
+│   ├── pages/           # Application pages (Home, Admin, MyBookings)
+│   ├── App.tsx          # Main application component & Routing
+│   └── main.tsx         # Entry point
+├── supabase/            # SQL scripts for database setup
+└── package.json         # Dependencies and scripts
 ```
 
-**Edit a file directly in GitHub**
+## 🔐 Database Setup
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The project uses Supabase. You can find the necessary SQL scripts to set up the database tables (buses, routes, schedules, bookings, support_chats) in the `SUPABASE_CHAT_SETUP.sql` file or use the provided migrations.
 
-**Use GitHub Codespaces**
+## 🤝 Contributing
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## What technologies are used for this project?
+## 📄 License
 
-This project is built with:
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+**Designed andDeveloped by Creative Lab©**  © 2026 All rights reserved.
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Contact Via -- tkavishka101@gmail.com
+LINKEDIN -- https://www.linkedin.com/in/kavishka-thilakarathna/
