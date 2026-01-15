@@ -95,7 +95,7 @@ The project uses Supabase. You can find the necessary SQL scripts to set up the 
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+
 
 ## 📄 License
 
@@ -103,7 +103,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**Designed andDeveloped by Creative Lab©**  © 2026 All rights reserved.
+**Designed an dDeveloped by Creative Lab©**  © 2026 All rights reserved.
 
 Contact Via -- tkavishka101@gmail.com
 LINKEDIN -- https://www.linkedin.com/in/kavishka-thilakarathna/
