@@ -103,7 +103,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**Designed an dDeveloped by Creative Lab©**  © 2026 All rights reserved.
+**Designed and Developed by Creative Lab©**  © 2026 All rights reserved.
 
 Contact Via -- tkavishka101@gmail.com
 LINKEDIN -- https://www.linkedin.com/in/kavishka-thilakarathna/
