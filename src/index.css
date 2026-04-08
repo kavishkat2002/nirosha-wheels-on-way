@@ -144,6 +144,12 @@ All colors MUST be HSL.
 
   html {
     scroll-behavior: smooth;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  html::-webkit-scrollbar {
+    display: none;
   }
 
   body {
@@ -152,6 +158,13 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
   .glass {
     @apply bg-white/10 backdrop-blur-md border border-white/20;
   }
