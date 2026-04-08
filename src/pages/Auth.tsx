@@ -132,7 +132,7 @@ export default function Auth() {
     if (user) {
       const { data: isAdmin, error: roleError } = await supabase.rpc('is_admin' as any);
 
-      const isDesignatedAdmin = user.email === 'kavishkathilakarathna0@gmail.com';
+      const isDesignatedAdmin = user.email === 'kavishkathilakarathna0@gmail.com' || user.email === 'tkavishka101@gmail.com' || user.email === 'admin@nirosha.lk' || user.email === 'creativexlab@tech.com' || user.email === 'test@admin.lk' || user.email?.toLowerCase() === 'info@creativexlab.online';
 
       if ((roleError || !isAdmin) && !isDesignatedAdmin) {
         await supabase.auth.signOut();

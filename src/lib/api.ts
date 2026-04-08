@@ -34,6 +34,7 @@ export interface Booking {
   seat_number: number;
   passenger_name: string;
   passenger_email: string;
+  passenger_phone?: string;
   pickup_location?: string;
   dropoff_location?: string;
   status: string;
@@ -106,6 +107,7 @@ export async function createBooking(
   seatNumber: number,
   passengerName: string,
   passengerEmail: string,
+  passengerPhone?: string,
   pickupLocation?: string,
   dropoffLocation?: string
 ): Promise<Booking> {
@@ -117,6 +119,7 @@ export async function createBooking(
       seat_number: seatNumber,
       passenger_name: passengerName,
       passenger_email: passengerEmail,
+      passenger_phone: passengerPhone,
       pickup_location: pickupLocation,
       dropoff_location: dropoffLocation,
       status: "confirmed",
@@ -135,6 +138,7 @@ export async function createMultipleBookings(
   seatNumbers: number[],
   passengerName: string,
   passengerEmail: string,
+  passengerPhone?: string,
   pickupLocation?: string,
   dropoffLocation?: string
 ): Promise<Booking[]> {
@@ -144,6 +148,7 @@ export async function createMultipleBookings(
     seat_number: seatNumber,
     passenger_name: passengerName,
     passenger_email: passengerEmail,
+    passenger_phone: passengerPhone,
     pickup_location: pickupLocation,
     dropoff_location: dropoffLocation,
     status: "confirmed",

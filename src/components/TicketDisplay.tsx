@@ -21,24 +21,6 @@ interface TicketDisplayProps {
 export function TicketDisplay({ bookings, schedule, onBookAnother }: TicketDisplayProps) {
   const ticketRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
-  const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchProfile() {
-      if (!user) return;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('phone_number')
-        .eq('id', user.id)
-        .single();
-
-      if (data && !error) {
-        // @ts-ignore
-        setPhoneNumber(data.phone_number);
-      }
-    }
-    fetchProfile();
-  }, [user]);
 
   const handleDownloadPDF = async () => {
     if (!ticketRef.current) return;
@@ -173,7 +155,7 @@ export function TicketDisplay({ bookings, schedule, onBookAnother }: TicketDispl
               <p className="text-xs text-muted-foreground font-bold uppercase flex items-center gap-2">
                 <Phone className="w-3 h-3" /> Mobile
               </p>
-              <p className="font-semibold text-lg">{phoneNumber || "N/A"}</p>
+              <p className="font-semibold text-lg">{booking.passenger_phone || "N/A"}</p>
             </div>
           </div>
 

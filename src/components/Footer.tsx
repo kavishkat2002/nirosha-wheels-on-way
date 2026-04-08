@@ -94,7 +94,7 @@ export function Footer() {
                 </div>
 
                 <div className="border-t border-border/50 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
-                    <p className="opacity-70">&copy; Designed & Developed By Creative Lab (Pvt) Ltd</p>
+                    <p className="opacity-70">&copy; Designed & Developed By CreativeX Technology</p>
                     <p className="font-medium">&copy; {new Date().getFullYear()} NIROSHA ENTERPRISES. All rights reserved.</p>
                     <div className="flex gap-6">
                         <Link to="#" className="hover:text-foreground transition-colors">Privacy Policy</Link>

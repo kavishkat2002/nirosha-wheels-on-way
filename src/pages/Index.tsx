@@ -131,7 +131,7 @@ const Index = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <Sparkles className="h-4 w-4" />
+
                     Sri Lanka's Trusted Bus Service
                   </motion.div>
 

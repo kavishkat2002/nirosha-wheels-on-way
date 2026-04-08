@@ -94,14 +94,14 @@ export function CheckoutModal({ schedule, selectedSeats, open, onClose, onSucces
       if (user) {
         const { data } = await supabase
           .from('profiles')
-          .select('phone_number')
+          .select('phone')
           .eq('id', user.id)
           .single();
 
         // @ts-ignore
-        if (data?.phone_number) {
+        if (data?.phone) {
           // @ts-ignore
-          form.setValue('passengerMobile', data.phone_number);
+          form.setValue('passengerMobile', data.phone);
         }
       }
     }
@@ -125,7 +125,7 @@ export function CheckoutModal({ schedule, selectedSeats, open, onClose, onSucces
         const { error: profileError } = await supabase
           .from('profiles')
           // @ts-ignore
-          .update({ phone_number: values.passengerMobile })
+          .update({ phone: values.passengerMobile })
           .eq('id', user.id);
 
         if (profileError) {
@@ -140,6 +140,7 @@ export function CheckoutModal({ schedule, selectedSeats, open, onClose, onSucces
         selectedSeats,
         values.passengerName,
         values.passengerEmail,
+        values.passengerMobile,
         values.pickupLocation,
         values.dropoffLocation
       );

@@ -187,12 +187,22 @@ export function ChatBot() {
             setChatId(data.id);
 
             // 2. Add welcome message from system/agent
+            const welcomeMsg = `Hello ${user?.user_metadata?.full_name || name || 'there'}! Welcome to Nirosha support. How can I help you?`;
+            
+            // Add locally first for instant feedback
+            setMessages([{
+                id: 'welcome-' + Date.now(),
+                sender: 'agent',
+                text: welcomeMsg,
+                timestamp: new Date()
+            }]);
+
             await supabase
                 .from('support_messages')
                 .insert({
                     chat_id: data.id,
                     sender: 'agent',
-                    message: `Hello ${user?.user_metadata?.full_name || name || 'there'}! Welcome to Nirosha support. How can I help you?`
+                    message: welcomeMsg
                 });
 
             toast.success("Connected to support!");
@@ -221,16 +231,39 @@ export function ChatBot() {
         const messageText = input;
         setInput("");
 
-        const { error } = await supabase
+        // Optimistically add message to state
+        const tempId = 'temp-' + Date.now();
+        setMessages(prev => [...prev, {
+            id: tempId,
+            sender: 'user',
+            text: messageText,
+            timestamp: new Date()
+        }]);
+
+        const { error, data } = await supabase
             .from('support_messages')
             .insert({
                 chat_id: chatId,
                 sender: 'user',
                 message: messageText
-            });
+            })
+            .select()
+            .single();
 
         if (error) {
+            // Remove the optimistic message if it failed
+            setMessages(prev => prev.filter(m => m.id !== tempId));
             toast.error("Failed to send message");
+        } else if (data) {
+            // Replace optimistic message with real message from DB to sync ID
+            setMessages(prev => prev.map(m => 
+                m.id === tempId ? {
+                    id: data.id,
+                    sender: data.sender,
+                    text: data.message,
+                    timestamp: new Date(data.created_at)
+                } : m
+            ));
         }
     };
 
@@ -252,9 +285,9 @@ export function ChatBot() {
                         initial={{ opacity: 0, y: 20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className="mb-4 w-[350px] sm:w-[380px] shadow-2xl rounded-2xl overflow-hidden border border-border/50"
+                        className="mb-4 w-[320px] sm:w-[350px] shadow-2xl rounded-2xl overflow-hidden border border-border/50"
                     >
-                        <Card className="h-[500px] flex flex-col border-0">
+                        <Card className="h-[450px] flex flex-col border-0">
                             {/* Header */}
                             <CardHeader className="bg-primary text-primary-foreground p-4 flex flex-row items-center justify-between space-y-0 text-white">
                                 <div className="flex items-center gap-3">
@@ -385,7 +418,7 @@ export function ChatBot() {
                                                 </Button>
                                             </form>
                                             <div className="text-[10px] text-center text-muted-foreground mt-2">
-                                                Powered by Creative Lab©
+                                                Powered by CreativeX Technology
                                             </div>
                                         </div>
                                     </div>

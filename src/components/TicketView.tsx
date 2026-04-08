@@ -19,24 +19,6 @@ interface TicketProps {
 export function TicketView({ bookings, schedule, onClose }: TicketProps) {
     const ticketRef = useRef<HTMLDivElement>(null);
     const { user } = useAuth();
-    const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
-
-    useEffect(() => {
-        async function fetchProfile() {
-            if (!user) return;
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('phone_number')
-                .eq('id', user.id)
-                .single();
-
-            if (data && !error) {
-                // @ts-ignore
-                setPhoneNumber(data.phone_number);
-            }
-        }
-        fetchProfile();
-    }, [user]);
 
     const handleDownloadPDF = async () => {
         try {
@@ -176,7 +158,7 @@ export function TicketView({ bookings, schedule, onClose }: TicketProps) {
 
             doc.setFontSize(12);
             doc.setFont("helvetica", "normal");
-            doc.text(phoneNumber || "N/A", col2, y + 7);
+            doc.text(bookings[0].passenger_phone || "N/A", col2, y + 7);
 
             y += 25;
 
@@ -378,7 +360,7 @@ export function TicketView({ bookings, schedule, onClose }: TicketProps) {
                                 <Phone className="w-3 h-3" /> MOBILE
                             </p>
                             <p className="text-lg font-bold text-card-foreground">
-                                {phoneNumber || "N/A"}
+                                {booking.passenger_phone || "N/A"}
                             </p>
                         </div>
                     </div>

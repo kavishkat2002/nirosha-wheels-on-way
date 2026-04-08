@@ -53,11 +53,43 @@ import { cn } from "@/lib/utils";
 const formSchema = z.object({
   bus_id: z.string().min(1, "Select a bus"),
   route_id: z.string().min(1, "Select a route"),
-  departure_time: z.string().min(1, "Enter departure time"),
-  arrival_time: z.string().min(1, "Enter arrival time"),
+  departure_time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Enter valid 24h time (HH:MM)"),
+  arrival_time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Enter valid 24h time (HH:MM)"),
   price: z.coerce.number().min(1, "Price is required"),
   date: z.date({ required_error: "Select a date" }),
 });
+
+const TimeInput = ({ value, onChange, disabled }: { value: string, onChange: (val: string) => void, disabled?: boolean }) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/[^0-9:]/g, '');
+    
+    // Auto insert colon
+    if (val.length === 2 && value.length !== 3 && !val.includes(':')) {
+      val += ':';
+    }
+    
+    // Prevent more than 5 chars
+    if (val.length > 5) {
+      val = val.slice(0, 5);
+    }
+
+    onChange(val);
+  };
+
+  return (
+    <div className="relative">
+      <Input
+        type="text"
+        placeholder="HH:MM"
+        value={value}
+        onChange={handleChange}
+        disabled={disabled}
+        className="pl-3 pr-10"
+      />
+      <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+    </div>
+  );
+};
 
 export function ScheduleManagement() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -240,9 +272,9 @@ export function ScheduleManagement() {
                   name="departure_time"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Departure</FormLabel>
+                      <FormLabel>Departure (24h)</FormLabel>
                       <FormControl>
-                        <Input type="time" {...field as any} />
+                        <TimeInput value={field.value} onChange={field.onChange} disabled={form.formState.isSubmitting} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -254,9 +286,9 @@ export function ScheduleManagement() {
                   name="arrival_time"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Arrival</FormLabel>
+                      <FormLabel>Arrival (24h)</FormLabel>
                       <FormControl>
-                        <Input type="time" {...field as any} />
+                        <TimeInput value={field.value} onChange={field.onChange} disabled={form.formState.isSubmitting} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

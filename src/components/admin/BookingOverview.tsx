@@ -52,26 +52,7 @@ export function BookingOverview() {
       const data = await fetchAllBookings();
       setBookings(data);
 
-      // Extract unique user IDs
-      const userIds = Array.from(new Set(data.map(b => b.user_id).filter(Boolean))) as string[];
-
-      if (userIds.length > 0) {
-        // Fetch phone numbers from profiles
-        const { data: profiles, error } = await supabase
-          .from('profiles')
-          .select('id, phone_number')
-          .in('id', userIds);
-
-        if (!error && profiles) {
-          const phoneMap: Record<string, string> = {};
-          profiles.forEach(p => {
-            // @ts-ignore
-            if (p.phone_number) phoneMap[p.id] = p.phone_number;
-          });
-          setPhoneNumbers(phoneMap);
-        }
-      }
-
+      // No need to fetch profiles mapping anymore as phone is stored on booking
     } catch (error) {
       console.error("Failed to load bookings:", error);
     } finally {
@@ -105,7 +86,7 @@ export function BookingOverview() {
 
       // Map data rows
       const rows = dateBookings.map(b => {
-        const phone = (b.user_id && phoneNumbers[b.user_id]) ? phoneNumbers[b.user_id] : 'N/A';
+        const phone = b.passenger_phone || 'N/A';
         const route = b.schedule?.route ? `${b.schedule.route.source} - ${b.schedule.route.destination}` : 'N/A';
         const bus = b.schedule?.bus ? `${b.schedule.bus.name}${b.schedule.bus.number ? ` (${b.schedule.bus.number})` : ''}` : 'N/A';
         const locations = `${b.pickup_location || 'Standard'} / ${b.dropoff_location || 'Standard'}`;
@@ -379,10 +360,10 @@ export function BookingOverview() {
                                     <Mail className="h-3 w-3" />
                                     <span>{booking.passenger_email}</span>
                                   </div>
-                                  {(booking.user_id && phoneNumbers[booking.user_id]) ? (
+                                  {booking.passenger_phone ? (
                                     <div className="flex items-center gap-1 text-primary font-medium">
                                       <Phone className="h-3 w-3" />
-                                      <span>{phoneNumbers[booking.user_id]}</span>
+                                      <span>{booking.passenger_phone}</span>
                                     </div>
                                   ) : (
                                     <span className="text-xs text-muted-foreground pl-4 italic">No phone</span>

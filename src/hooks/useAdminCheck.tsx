@@ -32,11 +32,11 @@ export function useAdminCheck() {
 
       if (error) {
         console.error("Supabase: RPC error checking admin role:", error);
-        const fallback = user.email === 'kavishkathilakarathna0@gmail.com';
+        const fallback = user.email === 'kavishkathilakarathna0@gmail.com' || user.email === 'tkavishka101@gmail.com';
         console.log("Supabase: Using local email fallback:", fallback);
         setIsAdmin(fallback);
       } else {
-        const result = data === true || user.email === 'kavishkathilakarathna0@gmail.com';
+        const result = data === true || user.email === 'kavishkathilakarathna0@gmail.com' || user.email === 'tkavishka101@gmail.com';
         console.log("Supabase: Admin check result (RPC + Fallback):", result);
         setIsAdmin(result);
       }

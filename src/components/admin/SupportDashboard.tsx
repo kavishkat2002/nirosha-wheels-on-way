@@ -174,16 +174,38 @@ export function SupportDashboard() {
         const text = inputText;
         setInputText("");
 
-        const { error } = await supabase
+        // Optimistically add message to state
+        const tempId = 'temp-' + Date.now();
+        setMessages(prev => [...prev, {
+            id: tempId,
+            text: text,
+            sender: 'agent',
+            timestamp: new Date()
+        }]);
+
+        const { error, data } = await supabase
             .from('support_messages')
             .insert({
                 chat_id: selectedSessionId,
                 sender: 'agent',
                 message: text
-            });
+            })
+            .select()
+            .single();
 
         if (error) {
+            setMessages(prev => prev.filter(m => m.id !== tempId));
             toast.error("Failed to send reply");
+        } else if (data) {
+            // Replace with actual data from DB
+            setMessages(prev => prev.map(m =>
+                m.id === tempId ? {
+                    id: data.id,
+                    text: data.message,
+                    sender: data.sender,
+                    timestamp: new Date(data.created_at)
+                } : m
+            ));
         }
     };
 
