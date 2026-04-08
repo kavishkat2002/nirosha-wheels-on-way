@@ -118,9 +118,9 @@ const Index = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
 
               {/* Content */}
-              <div className="container mx-auto px-4 relative z-10 py-12">
+              <div className="container mx-auto px-4 relative z-10 pt-32 pb-12 md:py-24">
                 <motion.div
-                  className="text-center mb-10"
+                  className="text-center mb-10 flex flex-col items-center"
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
@@ -128,7 +128,7 @@ const Index = () => {
 
 
                   <motion.h1
-                    className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight"
+                    className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight text-center px-4"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.8 }}
@@ -287,7 +287,7 @@ const Index = () => {
                                   <p className="font-semibold text-foreground">{route.to}</p>
                                 </div>
                               </div>
-                              <div className="text-right">
+                              <div className="flex flex-col">
                                 <p className="text-sm text-muted-foreground">Starting from</p>
                                 <p className="text-2xl font-bold text-primary">{route.price}</p>
                               </div>

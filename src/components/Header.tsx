@@ -111,7 +111,7 @@ export function Header() {
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
         (isScrolled || !isHome)
           ? "bg-background/80 backdrop-blur-xl border-border/40 shadow-sm py-2"
-          : "bg-transparent border-transparent py-4"
+          : "bg-transparent border-transparent py-4 text-white"
       )}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -137,16 +137,16 @@ export function Header() {
               />
             </div>
           </motion.div>
-          <div className="hidden sm:flex flex-col">
+          <div className="flex flex-col">
             <span className={cn(
-              "font-bold text-sm sm:text-lg leading-none tracking-tight",
-              (isScrolled || !isHome) ? "text-foreground" : "text-current"
+              "font-bold text-[10px] sm:text-lg leading-none tracking-tight",
+              (isScrolled || !isHome) ? "text-foreground" : "text-white"
             )}>
               NIROSHA ENTERPRISES
             </span>
             <span className={cn(
               "text-[8px] sm:text-[10px] font-medium tracking-widest uppercase opacity-70",
-              (isScrolled || !isHome) ? "text-muted-foreground" : "text-current"
+              (isScrolled || !isHome) ? "text-muted-foreground" : "text-white/80"
             )}>
               Passenger Service
             </span>
