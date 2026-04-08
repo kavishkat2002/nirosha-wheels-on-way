@@ -58,18 +58,18 @@ export function BusCard({ schedule, onSelect }: BusCardProps) {
               </div>
 
               {/* Time and Route */}
-              <div className="flex items-center gap-4 mb-4">
-                <div className="text-center">
+              <div className="flex items-center gap-3 sm:gap-4 mb-4">
+                <div className="text-center min-w-[60px] sm:min-w-[80px]">
                   <motion.p
-                    className="text-2xl font-bold text-card-foreground"
+                    className="text-xl sm:text-2xl font-bold text-card-foreground"
                     animate={{ scale: isHovered ? 1.05 : 1 }}
                   >
                     {schedule.departure_time}
                   </motion.p>
-                  <p className="text-sm text-muted-foreground">{route.source}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">{route.source}</p>
                 </div>
                 <div className="flex-1 flex items-center justify-center">
-                  <div className="flex-1 border-t-2 border-dashed border-border relative">
+                  <div className="flex-1 border-t-2 border-dashed border-border relative hidden sm:block">
                     <motion.div
                       className="absolute left-0 top-0 h-0.5 bg-gradient-to-r from-primary to-secondary"
                       initial={{ width: "0%" }}
@@ -77,25 +77,25 @@ export function BusCard({ schedule, onSelect }: BusCardProps) {
                       transition={{ duration: 0.5 }}
                     />
                   </div>
-                  <div className="mx-3 flex flex-col items-center">
+                  <div className="mx-1 sm:mx-3 flex flex-col items-center">
                     <motion.div
                       animate={{ x: isHovered ? [0, 5, 0] : 0 }}
                       transition={{ duration: 0.5, repeat: isHovered ? Infinity : 0 }}
                     >
                       <ArrowRight className="h-4 w-4 text-primary mb-1" />
                     </motion.div>
-                    <span className="text-xs text-muted-foreground font-medium">{route.duration}</span>
+                    <span className="text-[10px] sm:text-xs text-muted-foreground font-medium whitespace-nowrap">{route.duration}</span>
                   </div>
-                  <div className="flex-1 border-t-2 border-dashed border-border" />
+                  <div className="flex-1 border-t-2 border-dashed border-border hidden sm:block" />
                 </div>
-                <div className="text-center">
+                <div className="text-center min-w-[60px] sm:min-w-[80px]">
                   <motion.p
-                    className="text-2xl font-bold text-card-foreground"
+                    className="text-xl sm:text-2xl font-bold text-card-foreground"
                     animate={{ scale: isHovered ? 1.05 : 1 }}
                   >
                     {schedule.arrival_time}
                   </motion.p>
-                  <p className="text-sm text-muted-foreground">{route.destination}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">{route.destination}</p>
                 </div>
               </div>
 

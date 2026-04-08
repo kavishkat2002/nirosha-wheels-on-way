@@ -195,28 +195,28 @@ export function SeatSelector({ schedule, onConfirm, onBack }: SeatSelectorProps)
     <TooltipProvider>
       <div className="bg-card rounded-3xl shadow-2xl overflow-hidden border border-border/50">
         {/* Header with detailed info */}
-        <div className="bg-primary/5 p-6 md:p-8 border-b border-border/50">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="bg-primary/5 p-4 sm:p-8 border-b border-border/50">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <Badge variant="outline" className="bg-background/80 backdrop-blur-sm border-primary/20 text-primary">
+                <Badge variant="outline" className="bg-background/80 backdrop-blur-sm border-primary/20 text-primary px-2 py-0 h-5 text-[10px]">
                   {bus.type}
                 </Badge>
-                <span className="text-sm text-muted-foreground">{bus.number}</span>
+                <span className="text-[10px] sm:text-sm text-muted-foreground">{bus.number}</span>
               </div>
-              <h2 className="text-2xl font-bold text-foreground mb-1">{bus.name}</h2>
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-1">{bus.name}</h2>
+              <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">{route.source}</span>
                 <span className="text-primary">→</span>
                 <span className="font-medium text-foreground">{route.destination}</span>
-                <span className="mx-2">•</span>
+                <span className="mx-1 sm:mx-2">•</span>
                 <span>{schedule.departure_time}</span>
               </div>
             </div>
             
-            <div className="hidden md:block text-right">
-              <p className="text-sm text-muted-foreground mb-1">Price per seat</p>
-              <p className="text-2xl font-bold text-primary">
+            <div className="md:text-right border-t md:border-t-0 pt-4 md:pt-0">
+              <p className="text-[10px] sm:text-sm text-muted-foreground mb-1">Price per seat</p>
+              <p className="text-lg sm:text-2xl font-bold text-primary">
                 LKR {schedule.price.toLocaleString()}
               </p>
             </div>
@@ -226,7 +226,7 @@ export function SeatSelector({ schedule, onConfirm, onBack }: SeatSelectorProps)
         {/* Interactive content area */}
         <div className="flex flex-col lg:flex-row">
           {/* Left: Bus Diagram */}
-          <div className="flex-1 p-8 bg-muted/10">
+          <div className="flex-1 p-4 sm:p-8 bg-muted/10">
             <div className="max-w-[400px] mx-auto [perspective:1000px]">
               {/* Bus Container */}
               <div className="bg-white dark:bg-gray-900 rounded-[3rem] p-6 shadow-xl border-2 border-gray-200 dark:border-gray-800 relative bg-clip-padding backdrop-filter backdrop-blur-xl bg-opacity-60">

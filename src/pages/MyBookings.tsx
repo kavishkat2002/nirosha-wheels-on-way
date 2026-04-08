@@ -264,8 +264,8 @@ function BookingCard({
               </p>
             </div>
 
-            <div className="flex gap-2">
-              <Button variant="secondary" size="sm" onClick={onViewTicket}>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Button variant="secondary" size="sm" onClick={onViewTicket} className="flex-1 sm:flex-none">
                 <Eye className="w-4 h-4 mr-2" />
                 View Ticket
               </Button>
@@ -275,8 +275,9 @@ function BookingCard({
                   variant="destructive"
                   size="sm"
                   onClick={() => onCancel(booking.id)}
+                  className="flex-1 sm:flex-none"
                 >
-                  Cancel
+                  Cancel Trip
                 </Button>
               )}
             </div>

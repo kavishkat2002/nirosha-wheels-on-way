@@ -139,13 +139,13 @@ export function Header() {
           </motion.div>
           <div className="flex flex-col">
             <span className={cn(
-              "font-bold text-lg leading-none tracking-tight",
+              "font-bold text-sm sm:text-lg leading-none tracking-tight",
               (isScrolled || !isHome) ? "text-foreground" : "text-current"
             )}>
               NIROSHA ENTERPRISES
             </span>
             <span className={cn(
-              "text-[10px] font-medium tracking-widest uppercase opacity-70",
+              "text-[8px] sm:text-[10px] font-medium tracking-widest uppercase opacity-70",
               (isScrolled || !isHome) ? "text-muted-foreground" : "text-current"
             )}>
               Passenger Service

@@ -98,31 +98,31 @@ export function TicketDisplay({ bookings, schedule, onBookAnother }: TicketDispl
         </div>
 
         {/* Content */}
-        <div className="p-8 space-y-8 bg-white dark:bg-card">
+        <div className="p-4 sm:p-8 space-y-6 sm:space-y-8 bg-white dark:bg-card">
           {/* Route Info */}
-          <div className="flex items-center justify-between relative">
-            {/* Connecting Line */}
-            <div className="absolute top-1/2 left-10 right-10 h-0.5 bg-border -z-10" />
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative">
+            {/* Connecting Line - hidden on mobile stack */}
+            <div className="absolute top-1/2 left-10 right-10 h-0.5 bg-border -z-10 hidden sm:block" />
 
-            <div className="bg-card pr-4">
-              <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">From</p>
-              <p className="font-bold text-xl">{route.source}</p>
-              <div className="flex items-center gap-1 text-sm text-primary mt-1">
+            <div className="bg-card w-full sm:w-auto text-center sm:text-left">
+              <p className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">From</p>
+              <p className="font-bold text-lg sm:text-xl">{route.source}</p>
+              <div className="flex items-center justify-center sm:justify-start gap-1 text-xs sm:text-sm text-primary mt-1">
                 <MapPin className="w-3 h-3" />
                 <span>{booking.pickup_location || "Standard Pickup"}</span>
               </div>
             </div>
 
             <div className="bg-card px-4 text-center">
-              <div className="bg-muted text-muted-foreground text-xs font-bold px-2 py-1 rounded-full border border-border">
+              <div className="bg-muted text-muted-foreground text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full border border-border">
                 {route.duration}
               </div>
             </div>
 
-            <div className="bg-card pl-4 text-right">
-              <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">To</p>
-              <p className="font-bold text-xl">{route.destination}</p>
-              <div className="flex items-center gap-1 text-sm text-primary mt-1 justify-end">
+            <div className="bg-card w-full sm:w-auto text-center sm:text-right">
+              <p className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">To</p>
+              <p className="font-bold text-lg sm:text-xl">{route.destination}</p>
+              <div className="flex items-center justify-center sm:justify-end gap-1 text-xs sm:text-sm text-primary mt-1">
                 <span>{booking.dropoff_location || "Standard Drop-off"}</span>
                 <MapPin className="w-3 h-3" />
               </div>
@@ -132,30 +132,30 @@ export function TicketDisplay({ bookings, schedule, onBookAnother }: TicketDispl
           <div className="h-px bg-border my-6" />
 
           {/* Schedule Grid */}
-          <div className="grid grid-cols-2 gap-y-6 gap-x-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-12">
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-bold uppercase flex items-center gap-2">
+              <p className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase flex items-center gap-2">
                 <Calendar className="w-3 h-3" /> Date
               </p>
-              <p className="font-semibold text-lg">{format(new Date(schedule.date), "EEEE, d MMM yyyy")}</p>
+              <p className="font-semibold text-base sm:text-lg">{format(new Date(schedule.date), "EEEE, d MMM yyyy")}</p>
             </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-bold uppercase flex items-center gap-2">
+            <div className="space-y-1 text-right sm:text-left">
+              <p className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase flex items-center justify-end sm:justify-start gap-2">
                 <Clock className="w-3 h-3" /> Time
               </p>
-              <p className="font-semibold text-lg">{schedule.departure_time} - {schedule.arrival_time}</p>
+              <p className="font-semibold text-base sm:text-lg">{schedule.departure_time} - {schedule.arrival_time}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-bold uppercase flex items-center gap-2">
+              <p className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase flex items-center gap-2">
                 <Armchair className="w-3 h-3" /> Seat No
               </p>
-              <p className="font-semibold text-lg tracking-wide">{seatNumbers}</p>
+              <p className="font-semibold text-base sm:text-lg tracking-wide">{seatNumbers}</p>
             </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-bold uppercase flex items-center gap-2">
+            <div className="space-y-1 text-right sm:text-left">
+              <p className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase flex items-center justify-end sm:justify-start gap-2">
                 <Phone className="w-3 h-3" /> Mobile
               </p>
-              <p className="font-semibold text-lg">{booking.passenger_phone || "N/A"}</p>
+              <p className="font-semibold text-base sm:text-lg">{booking.passenger_phone || "N/A"}</p>
             </div>
           </div>
 
