@@ -137,7 +137,7 @@ export function Header() {
               />
             </div>
           </motion.div>
-          <div className="flex flex-col">
+          <div className="hidden sm:flex flex-col">
             <span className={cn(
               "font-bold text-sm sm:text-lg leading-none tracking-tight",
               (isScrolled || !isHome) ? "text-foreground" : "text-current"
@@ -165,7 +165,7 @@ export function Header() {
         )}
 
         {/* Right Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 sm:gap-3">
           <ModeToggle />
 
           <div className="hidden md:flex items-center gap-2">
